@@ -1,0 +1,96 @@
+delimiters "%", "%"
+
+PhaseClassHeader(packageName) ::= <<
+package %packageName%.converter;
+
+
+>>
+
+PhaseClassImport1(packageName, genName) ::= <<
+import %packageName%.converter.descriptors.%genName%ContextDescriptor;
+
+>>
+
+PhaseClassImport2(packageName, grammarName, genName) ::= <<
+import %packageName%.parser.gen.%grammarName%Parser.%genName%Context;
+
+>>
+
+PhaseClassClass(packageName, grammarName, phaseNumber) ::= <<
+
+import %packageName%.util.Log;
+
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+public class %grammarName%Phase%phaseNumber% extends %grammarName%PhaseBase {
+
+	public static final int phase = %phaseNumber%;
+	
+
+>>
+
+PhaseClassInitialConstructor(packageName, grammarName, phaseNumber) ::= <<
+
+	public %grammarName%Phase%phaseNumber%(ParseTree tree, CommonTokenStream tokens) {
+		super(tree, tokens);
+	}
+
+
+>>
+
+PhaseClassConstructor(packageName, grammarName, phaseNumber) ::= <<
+
+	public %grammarName%Phase%phaseNumber%(%grammarName%PhaseBase prior) {
+		super(prior.nodeContextMap, prior.commentMarkers, prior.tree, prior.tokens);
+	}
+
+
+>>
+
+PhaseClassComments() ::= <<
+
+	public void collectComments(boolean collect) {
+		this.collectComments = collect;
+	}
+
+>>
+
+PhaseClassEnterMethod(genName) ::= <<
+
+
+	@Override
+	public void enter%genName%(%genName%Context ctx) {
+		super.enter%genName%(ctx);
+		%genName%ContextDescriptor descriptor = new %genName%ContextDescriptor(ctx, tokens);
+		setDescriptor(ctx, descriptor);
+
+		if (descriptor.collectComments) {
+			descriptor.collectComments = collectComments;
+			descriptor.commentLeft = commentLeft(ctx);
+			descriptor.commentRight = commentRight(ctx);
+		}
+	}
+
+
+>>
+
+PhaseClassExitMethod(genName) ::= <<
+
+
+	@Override
+	public void exit%genName%(%genName%Context ctx) {
+		super.exit%genName%(ctx);
+		%genName%ContextDescriptor descriptor = (%genName%ContextDescriptor) getDescriptor(ctx);
+
+		Log.info(this, "Phase " + phase + ": Exiting %genName% context:\r\n " + descriptor.toString());
+	}
+
+
+>>
+
+PhaseClassTrailer() ::= <<
+
+}
+
+>>

@@ -1,0 +1,12 @@
+delimiters "%", "%"
+
+OutputFileGen(packageName, grammarName) ::= <<
+package %packageName%.generator;
+
+public class %grammarName%FileGen {
+
+	public %grammarName%FileGen() {
+		super();
+	}
+}
+>>

@@ -1,0 +1,124 @@
+delimiters "%", "%"
+
+Log(packageName) ::= <<
+package %packageName%.util;
+
+import org.apache.log4j.Logger;
+
+public class Log {
+
+	private static Logger logger = Logger.getLogger(Log.class);
+
+	private Log() {}
+
+	public static void info(Object source, String message) {
+		info(source, true, message, null);
+	}
+
+	public static void info(Object source, boolean debug, String message) {
+		info(source, debug, message, null);
+	}
+
+	public static void info(Object source, String message, Throwable e) {
+		info(source, true, message, e);
+	}
+
+	public static void info(Object source, boolean debug, String message, Throwable e) {
+		if (!debug) return;
+		logger = Logger.getLogger(source.getClass());
+		if (e == null) {
+			logger.info(message);
+		} else {
+			logger.info(message, e);
+		}
+	}
+
+	public static void debug(Object source, String message) {
+		debug(source, true, message, null);
+	}
+
+	public static void debug(Object source, boolean debug, String message) {
+		debug(source, debug, message, null);
+	}
+
+	public static void debug(Object source, String message, Throwable e) {
+		debug(source, true, message, e);
+	}
+
+	public static void debug(Object source, boolean debug, String message, Throwable e) {
+		if (!debug) return;
+		logger = Logger.getLogger(source.getClass());
+		if (e == null) {
+			logger.debug(message);
+		} else {
+			logger.debug(message, e);
+		}
+	}
+
+	public static void warn(Object source, String message) {
+		warn(source, true, message, null);
+	}
+
+	public static void warn(Object source, boolean debug, String message) {
+		warn(source, debug, message, null);
+	}
+
+	public static void warn(Object source, String message, Throwable e) {
+		warn(source, true, message, e);
+	}
+
+	public static void warn(Object source, boolean debug, String message, Throwable e) {
+		if (!debug) return;
+		logger = Logger.getLogger(source.getClass());
+		if (e == null) {
+			logger.warn(message);
+		} else {
+			logger.warn(message, e);
+		}
+	}
+
+	public static void error(Object source, String message) {
+		error(source, true, message, null);
+	}
+
+	public static void error(Object source, boolean debug, String message) {
+		error(source, debug, message, null);
+	}
+
+	public static void error(Object source, String message, Throwable e) {
+		error(source, true, message, e);
+	}
+
+	public static void error(Object source, boolean debug, String message, Throwable e) {
+		if (!debug) return;
+		logger = Logger.getLogger(source.getClass());
+		if (e == null) {
+			logger.error(message);
+		} else {
+			logger.error(message, e);
+		}
+	}
+
+	public static void fatal(Object source, String message) {
+		fatal(source, true, message, null);
+	}
+
+	public static void fatal(Object source, boolean debug, String message) {
+		fatal(source, debug, message, null);
+	}
+
+	public static void fatal(Object source, String message, Throwable e) {
+		fatal(source, true, message, e);
+	}
+
+	public static void fatal(Object source, boolean debug, String message, Throwable e) {
+		if (!debug) return;
+		logger = Logger.getLogger(source.getClass());
+		if (e == null) {
+			logger.fatal(message);
+		} else {
+			logger.fatal(message, e);
+		}
+	}
+}
+>>

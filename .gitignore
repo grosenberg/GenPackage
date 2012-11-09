@@ -1,0 +1,9 @@
+# gitignore for Eclipse
+.settings/
+attic/
+bin/
+.classpath
+.project
+/*.jar
+/*.xml
+/jar*.zip

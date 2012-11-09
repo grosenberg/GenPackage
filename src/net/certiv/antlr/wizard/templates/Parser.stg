@@ -1,0 +1,137 @@
+delimiters "%", "%"
+
+ParserGrammar(packageName, grammarName, startRule) ::= <<
+parser grammar %grammarName%Parser;
+
+options {
+	tokenVocab = %grammarName%Lexer;
+}
+
+@header {
+	package %packageName%.parser.gen;
+}
+
+
+// PARSER /////////////////////////////////////////////
+
+%startRule%
+	: object
+	| array
+	;	
+
+object
+	: OBRACE element (SEP element)* CBRACE
+	| OBRACE CBRACE
+	;
+	
+element
+	: STRING COLON value
+	;	
+	
+array
+	: OBRACKET value (SEP value)* CBRACKET
+	| OBRACKET CBRACKET
+	;
+
+	
+value
+	: STRING
+	| NUMBER
+	| object  
+	| array  
+	| TRUE   
+	| FALSE
+	| NULL
+	;
+
+>>
+
+LexerGrammar(packageName, grammarName) ::= <<
+lexer grammar %grammarName%Lexer;
+
+@header {
+	package %packageName%.parser.gen;
+}
+
+@members {
+	// semantic alias for the default mode
+	public static final int Base = DEFAULT_MODE; 
+}
+
+// LEXER /////////////////////////////////////////////
+
+/////////////////// FRAGMENTS //////////////////
+
+fragment DIGIT	: [0-9] ;
+fragment INT	: [-]? ('0' | [1-9] DIGIT*);
+fragment FRAC	: '.' DIGIT+;
+fragment EXP	: [eE] [+\-]? DIGIT+;
+
+fragment HEX 		:	[0-9a-fA-F] ;
+fragment UNICODE	:   'u' HEX HEX HEX HEX ;
+fragment ESC	// Any escaped character
+	:	'\\\\' 
+		(	[btnfr"'\\\\/]		// ordinary escaped characters
+		|	UNICODE				// Java style Unicode escape sequence
+		)
+	;
+
+// ----------
+// Whitespace
+
+fragment ML_COMMENT		: '/*' .* '*/' ;
+fragment SL_COMMENT		: '//' ~[\r\n]* ;
+
+fragment HWS			:  [ \t]+ ;
+fragment VWS			:  [\r\n\u000C]+ ;
+
+
+
+////////////// Default Mode (alias Base) ///////////////////
+// mode Base;
+
+// -----------
+// Punctuation
+
+COLON		: ':' ;
+SEP			: ',' ;
+OBRACE		: '{' ;
+CBRACE 		: '}' ;
+OBRACKET	: '[' ;
+CBRACKET	: ']' ;
+TRUE		: 'true' ;
+FALSE		: 'false' ;
+NULL		: 'null' ;
+
+
+// -------------------
+// Strings and Numbers
+
+NUMBER	: INT FRAC EXP? 
+		| INT EXP 
+		| INT
+		;
+
+STRING	:	  '"' (ESC | ~["\\\\])* '"' ;		
+	
+
+// Multi-line comments handled as a single token
+Comment
+    : ML_COMMENT  -> channel(HIDDEN) 
+    ;
+
+// group one or more consecutive line comments together,  
+// excluding the final line terminal(s), as a single token
+CommentLine
+	: SL_COMMENT (HWS* VWS HWS* SL_COMMENT)* -> channel(HIDDEN)
+	;
+
+// all other horizontal and vertical whitespace is separately tokenized
+HorzWiteSpace
+	: HWS	-> channel(HIDDEN)
+	;
+
+VertWhiteSpace
+	: VWS	-> channel(HIDDEN)
+	;
+>>
