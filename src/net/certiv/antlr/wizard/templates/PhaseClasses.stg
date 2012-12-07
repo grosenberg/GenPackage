@@ -1,5 +1,63 @@
 delimiters "%", "%"
 
+FirstPhaseClass(packageName, grammarName, phaseNumber) ::= <<
+package %packageName%.converter;
+
+import %packageName%.util.Log;
+import %packageName%.util.Reflect;
+
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
+
+public class %grammarName%Phase%phaseNumber% extends %grammarName%PhaseBase {
+
+	public static final int phase = %phaseNumber%;
+	public boolean collectComments;
+
+	/**
+	 * Phase Plan: <br>
+	 * -- initialize default values for all subsequent phases <br>
+	 * -- create typed descriptor objects for context instances <br>
+	 * -- if enabled, examine and collect comments from hidden-channel <br>
+	 */
+	public %grammarName%Phase01(CommonTokenStream tokens) {
+		super(tokens);
+	}
+
+	public void collectComments(boolean collect) {
+		this.collectComments = collect;
+	}
+
+	@Override
+	public void enterEveryRule(ParserRuleContext ctx) {
+		super.enterEveryRule(ctx);
+
+		String className = ctx.getClass().getName();
+		int pathIdx = className.indexOf("parser.gen");
+		className = className.substring(0, pathIdx) + "converter.descriptors.";
+		int nameIdx = ctx.getClass().getSimpleName().lastIndexOf("Context");
+		className = className + ctx.getClass().getSimpleName().substring(0, nameIdx) + "Descriptor";
+		Object[] args = { ctx };
+		BaseDescriptor descriptor;
+		try {
+			descriptor = (BaseDescriptor) Reflect.make(Class.forName(className), args);
+		} catch (ClassNotFoundException e) {
+			Log.error(this, "Failed to make " + className, e);
+			return;
+		}
+		setDescriptor(ctx, descriptor);
+
+		if (collectComments) {
+			descriptor.collectComments = collectComments;
+			descriptor.commentLeft = commentLeft(ctx);
+			descriptor.commentRight = commentRight(ctx);
+		}
+
+		Log.info(this, "Phase " + phase + ": Created " + className);
+	}
+}
+>>
+
 PhaseClassHeader(packageName) ::= <<
 package %packageName%.converter;
 
@@ -7,7 +65,7 @@ package %packageName%.converter;
 >>
 
 PhaseClassImport1(packageName, genName) ::= <<
-import %packageName%.converter.descriptors.%genName%ContextDescriptor;
+import %packageName%.converter.descriptors.%genName%Descriptor;
 
 >>
 
@@ -32,8 +90,8 @@ public class %grammarName%Phase%phaseNumber% extends %grammarName%PhaseBase {
 
 PhaseClassInitialConstructor(packageName, grammarName, phaseNumber) ::= <<
 
-	public %grammarName%Phase%phaseNumber%(ParseTree tree, CommonTokenStream tokens) {
-		super(tree, tokens);
+	public %grammarName%Phase%phaseNumber%(CommonTokenStream tokens) {
+		super(tokens);
 	}
 
 
@@ -41,6 +99,11 @@ PhaseClassInitialConstructor(packageName, grammarName, phaseNumber) ::= <<
 
 PhaseClassConstructor(packageName, grammarName, phaseNumber) ::= <<
 
+	/**
+	 * Phase Plan: <br>
+	 * -- pull context data into their descriptors to simplify accessing values <br>
+	 * -- where the descriptor contains all of the context data, mark the descriptor 'resolved' <br>
+	 */
 	public %grammarName%Phase%phaseNumber%(%grammarName%PhaseBase prior) {
 		super(prior.nodeContextMap, prior.commentMarkers, prior.tree, prior.tokens);
 	}

@@ -226,7 +226,7 @@ public class GenProject {
 						createWalkerPhase(config.getPackageName(), config.getGrammarName(), genNames);
 
 						lastError = "Failure in processing descriptors creation";
-						createContextDescritors(config.getPackageName(), config.getGrammarName(), genNames);
+						createDescritors(config.getPackageName(), config.getGrammarName(), genNames);
 						createGenerator(config.getPackageName(), config.getGrammarName());
 
 					} else {
@@ -315,9 +315,19 @@ public class GenProject {
 	// ///////////////////////////////////////////////////////////////////////////
 
 	public void createWalkerPhase(String packageName, String grammarName, List<String> genNames) throws IOException {
-		createWalkerPhase(packageName, grammarName, "01", genNames);
+		createFirstWalkerPhase(packageName, grammarName, "01");
 		createWalkerPhase(packageName, grammarName, "02", genNames);
+		createWalkerPhase(packageName, grammarName, "03", genNames);
 		createWalkerPhase(packageName, grammarName, "10", genNames);
+	}
+
+	private void createFirstWalkerPhase(String packageName, String grammarName, String phaseNumber) throws IOException {
+		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "PhaseClasses.stg"));
+		ST st = group.getInstanceOf("FirstPhaseClass");
+		st.add("packageName", packageName);
+		st.add("grammarName", grammarName);
+		String result = st.render();
+		config.writeFile(concat(dstConverter, grammarName + "Phase" + phaseNumber + ".java"), result);
 	}
 
 	private void createWalkerPhase(String packageName, String grammarName, String phaseNumber, List<String> genNames)
@@ -435,27 +445,34 @@ public class GenProject {
 		config.writeFile(concat(dstGenerator, grammarName + "FileGen.java"), result);
 	}
 
-	public void createContextDescritors(String packageName, String grammarName, List<String> descriptorNames)
+	public void createDescritors(String packageName, String grammarName, List<String> descriptorNames)
 			throws IOException {
-		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "ContextDescriptorClasses.stg"));
-		ST st = group.getInstanceOf("IContextDescriptorClass");
+		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "DescriptorClasses.stg"));
+		ST st = group.getInstanceOf("IDescriptorClass");
 		st.add("packageName", packageName);
 		String result = st.render();
-		config.writeFile(concat(dstConverter, "IContextDescriptor.java"), result);
+		config.writeFile(concat(dstConverter, "IDescriptor.java"), result);
 
-		st = group.getInstanceOf("NodeContextDescriptorClass");
+		st = group.getInstanceOf("BaseDescriptorClass");
 		st.add("packageName", packageName);
+		st.add("grammarName", grammarName);
 		result = st.render();
-		config.writeFile(concat(dstConverter, "NodeContextDescriptor.java"), result);
+		config.writeFile(concat(dstConverter, "BaseDescriptor.java"), result);
 
-		st = group.getInstanceOf("ContextDescriptorClass");
+		st = group.getInstanceOf("DescriptorClass");
 		st.add("packageName", packageName);
 		st.add("grammarName", grammarName);
 		for (String genName : descriptorNames) {
 			st.add("genName", genName);
 			result = st.render();
-			config.writeFile(concat(dstDescriptors, genName + "ContextDescriptor.java"), result);
+			config.writeFile(concat(dstDescriptors, genName + "Descriptor.java"), result);
+			st.remove("genName");
 		}
+
+		st = group.getInstanceOf("ValueClass");
+		st.add("packageName", packageName);
+		result = st.render();
+		config.writeFile(concat(dstConverter, "Value.java"), result);
 	}
 
 	public void createTools(String projectPath, String sourcePath, String packagePath, String antlrJarPath,
@@ -474,9 +491,14 @@ public class GenProject {
 
 	public void createUtils(String packageName) throws IOException {
 		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "Utils.stg"));
-		ST st = group.getInstanceOf("Log");
+		ST st = group.getInstanceOf("LogClass");
 		st.add("packageName", packageName);
 		String result = st.render();
 		config.writeFile(concat(dstUtil, "Log.java"), result);
+
+		st = group.getInstanceOf("ReflectClass");
+		st.add("packageName", packageName);
+		result = st.render();
+		config.writeFile(concat(dstUtil, "Reflect.java"), result);
 	}
 }

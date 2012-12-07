@@ -24,42 +24,55 @@ public class Converter {
 	}
 
 	public void convert(File srcFile, File dstFile) {
+		String lastError = "<none>";
 		Log.info(this, "Converting " + srcFile.getName() + " -> " + dstFile.getName());
-		ANTLRInputStream input;
 		try {
+			lastError = "Failure in acquiring input stream.";
 			FileInputStream is = new FileInputStream(srcFile);
-			input = new ANTLRInputStream(is);
-		} catch (IOException e) {
-			Log.error(this, "Source file not valid.", e);
-			return;
-		}
+			ANTLRInputStream input = new ANTLRInputStream(is);
 
-		%grammarName%Lexer lexer = new %grammarName%Lexer(input);
-		// %grammarName%TokenFactory factory = new %grammarName%TokenFactory(input);
-		// lexer.setTokenFactory(factory);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
+			lastError = "Failure in generating lexer token stream.";
+			%grammarName%Lexer lexer = new %grammarName%Lexer(input);
+			// %grammarName%TokenFactory factory = new %grammarName%TokenFactory(input);
+			// lexer.setTokenFactory(factory);
+			CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-		%grammarName%Parser parser = new %grammarName%Parser(tokens);
-		// parser.setTokenFactory(factory);
-		// parser.removeErrorListeners(); // remove default ConsoleErrorListener
-		// parser.addErrorListener(new %grammarName%ErrorListener());
-		// parser.setErrorHandler(new %grammarName%ParserErrorStrategy());
-		ParseTree tree = parser.%startRule%();
+			lastError = "Failure in parser production.";
+			%grammarName%Parser parser = new %grammarName%Parser(tokens);
+			// parser.setTokenFactory(factory);
+			// parser.removeErrorListeners(); // remove ConsoleErrorListener
+			// parser.addErrorListener(new %grammarName%ErrorListener());
+			// parser.setErrorHandler(new %grammarName%ParserErrorStrategy());
+			ParseTree tree = parser.metalSpec();
 
-		ParseTreeWalker walker = new ParseTreeWalker();
-		%grammarName%Phase01 phase01 = new %grammarName%Phase01(tree, tokens);
-		walker.walk(phase01, tree);
+			ParseTreeWalker walker = new ParseTreeWalker();
 
-		%grammarName%Phase02 phase02 = new %grammarName%Phase02(phase01);
-		walker.walk(phase02, tree);
+			lastError = "Failure in parse phase 1.";
+			%grammarName%Phase01 phase01 = new %grammarName%Phase01(tokens);
+			phase01.collectComments(true);
+			walker.walk(phase01, tree);
 
-		%grammarName%Phase10 phase10 = new %grammarName%Phase10(phase02);
-		walker.walk(phase10, tree);
+			lastError = "Failure in parse phase 2.";
+			%grammarName%Phase02 phase02 = new %grammarName%Phase02(phase01);
+			walker.walk(phase02, tree);
 
-		try {
+			lastError = "Failure in parse phase 3.";
+			%grammarName%Phase03 phase03 = new %grammarName%Phase03(phase02);
+			walker.walk(phase03, tree);
+
+			lastError = "Failure in parse phase 6.";
+			%grammarName%Phase06 phase06 = new %grammarName%Phase06(phase03);
+			walker.walk(phase06, tree);
+
+			lastError = "Failure in parse phase 10.";
+			%grammarName%Phase10 phase10 = new %grammarName%Phase10(phase06);
+			walker.walk(phase10, tree);
+
+			lastError = "Failure in final report production.";
 			FileUtils.write(dstFile, tree.toStringTree());
+			Log.info(this, "Convertion complete.");
 		} catch (IOException e) {
-			Log.error(this, "Failed to write parse tree to file.", e);
+			Log.error(this, lastError, e);
 		}
 	}
 }
@@ -69,60 +82,40 @@ PhaseBaseClass(packageName, grammarName) ::= <<
 package %packageName%.converter;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import %packageName%.parser.gen.%grammarName%Lexer;
 import %packageName%.parser.gen.%grammarName%ParserBaseListener;
 
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 public class %grammarName%PhaseBase extends %grammarName%ParserBaseListener {
 
-	public ParseTree tree;
-	public CommonTokenStream tokens;
-	public ParseTreeProperty<NodeContextDescriptor> nodeContextMap;
-	public ArrayList<Integer> commentMarkers;
-
 	/**
 	 * Constructor for initial phase
 	 */
-	public %grammarName%PhaseBase(ParseTree tree, CommonTokenStream tokens) {
+	public %grammarName%PhaseBase(CommonTokenStream tokens) {
 		super();
-		this.tree = tree;
-		this.tokens = tokens;
-		this.nodeContextMap = new ParseTreeProperty<NodeContextDescriptor>();
-		this.commentMarkers = new ArrayList<Integer>();
-	}
-
-	/**
-	 * Convenience Constructor for subsequent phases
-	 */
-	public %grammarName%PhaseBase(%grammarName%PhaseBase prior) {
-		this(prior.nodeContextMap, prior.commentMarkers,  prior.tree, prior.tokens);
+		BaseDescriptor.tokens = tokens;
+		BaseDescriptor.nodeContextMap = new ParseTreeProperty<NodeContextDescriptor>();
+		BaseDescriptor.commentMarkers = new ArrayList<Integer>();
 	}
 
 	/**
 	 * Constructor for subsequent phases
 	 */
-	public %grammarName%PhaseBase(ParseTreeProperty<NodeContextDescriptor> nodeContextMap, ArrayList<Integer> commentMarkers,
-			ParseTree tree, CommonTokenStream tokens) {
+	public %grammarName%PhaseBase() {
 		super();
-		this.nodeContextMap = nodeContextMap;
-		this.commentMarkers = commentMarkers;
-		this.tree = tree;
-		this.tokens = tokens;
 	}
 
-	public NodeContextDescriptor getDescriptor(ParseTree ctx) {
-		return nodeContextMap.get(ctx);
+	public BaseDescriptor getDescriptor(ParseTree ctx) {
+		return BaseDescriptor.nodeContextMap.get(ctx);
 	}
 
-	public void setDescriptor(ParseTree ctx, NodeContextDescriptor ncd) {
-		nodeContextMap.put(ctx, ncd);
+	public void setDescriptor(ParseTree ctx, BaseDescriptor ncd) {
+		BaseDescriptor.nodeContextMap.put(ctx, ncd);
 	}
 
 	public String childText(ParserRuleContext<Token> rc, int idx) {
@@ -208,10 +201,6 @@ public class %grammarName%PhaseBase extends %grammarName%ParserBaseListener {
 		int idx = qualifiedName.lastIndexOf('.');
 		if (idx == -1) return qualifiedName;
 		return qualifiedName.substring(0, idx);
-	}
-
-	public List<ParseTree> getRuleContextElements(ParserRuleContext<Token> ctx) {
-		return ctx.children;
 	}
 }
 >>

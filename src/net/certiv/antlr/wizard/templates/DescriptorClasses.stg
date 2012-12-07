@@ -1,0 +1,224 @@
+delimiters "%", "%"
+
+IDescriptorClass(packageName) ::= <<
+package %packageName%.converter;
+
+public interface IDescriptor {
+
+	public void initialize();
+
+	public Value process();
+
+	public Value process(String property);
+
+	public String toString();
+}
+>>
+
+BaseDescriptorClass(packageName, grammarName) ::= <<
+package %packageName%.converter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import %packageName%.symbol.SymbolTable;
+import %packageName%.types.Node;
+import %packageName%.types.ValueType;
+import %packageName%.util.Log;
+
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ErrorNodeImpl;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeProperty;
+import org.antlr.v4.runtime.tree.TerminalNodeImpl;
+
+public class BaseDescriptor implements IDescriptor {
+
+	public static final String SP	= " ";
+	public static final String RN	= "\r\n";
+	public static final String DOT	= ".";
+	public static final String STAR	= "*";
+	public static final String HASH	= "#";
+
+	// globally shared data
+	public static SymbolTable symTable;
+	public static CommonTokenStream tokens; // the reference token stream
+	public static ParseTreeProperty<BaseDescriptor> nodeContextMap;
+	public static ArrayList<Integer> commentMarkers;
+
+	// local non-shared data
+	public ParserRuleContext ctx; // current context
+	public List<ElementAssoc> assocElement; // elements of context
+
+	public Value value; // the resolved value of this node
+	public ValueType type; // generalized type of this node
+	public boolean resolved = false; // whether this and all child nodes have been resolved
+
+	public boolean collectComments = false;
+	public String commentLeft;
+	public String commentRight;
+	
+	public class ElementAssoc {
+		public Node type;
+		public int index;
+		public Token token;
+		public ParseTree tree;
+
+		public ElementAssoc(Node type, Token token, ParseTree tree) {
+			super();
+			this.type = type;
+			this.index = token.getTokenIndex();
+			this.token = token;
+			this.tree = tree;
+		}
+	}
+
+	public BaseDescriptor(ParserRuleContext<Token> ctx) {
+		this.ctx = ctx;
+	}
+
+	public BaseDescriptor getDescriptor(ParseTree ctx) {
+		return nodeContextMap.get(ctx);
+	}
+
+	public Value process(String property) {
+		return process();
+	}
+
+	@Override
+	public String toString() {
+		if (collectComments) {
+			return commentLeft + process().value() + SP + commentRight;
+		} else {
+			return process().value();
+		}
+	}
+
+	public List<ParseTree> getContextElements(ParserRuleContext ctx) {
+		return ctx.children;
+	}
+
+	public ParseTree firstElement(ParserRuleContext ctx) {
+		return ctx.children.get(0);
+	}
+
+	public ParseTree lastElement(ParserRuleContext ctx) {
+		return ctx.children.get(ctx.children.size() - 1);
+	}
+
+	public ParseTree priorElement(ParserRuleContext ctx, ParseTree node) {
+		buildElementAssociations(ctx);
+		int index = indexOfElement(ctx, node);
+		if (index < 1 || index >= assocElement.size()) return null;
+		return assocElement.get(index - 1).tree;
+	}
+
+	public ParseTree nextElement(ParserRuleContext ctx, ParseTree node) {
+		buildElementAssociations(ctx);
+		int index = indexOfElement(ctx, node);
+		if (index < 0 || index > assocElement.size() - 2) return null;
+		return assocElement.get(index + 1).tree;
+	}
+
+	public ParseTree getElementAt(ParserRuleContext ctx, int index) {
+		buildElementAssociations(ctx);
+		if (index < 0 || index > assocElement.size() - 1) return null;
+		return assocElement.get(index).tree;
+	}
+
+	public int indexOfElement(ParserRuleContext ctx, ParseTree node) {
+		buildElementAssociations(ctx);
+		int index = node.getSourceInterval().a;
+		for (int idx = 0; idx < assocElement.size(); idx++) {
+			ElementAssoc e = assocElement.get(idx);
+			if (e.index == index) {
+				return idx;
+			}
+		}
+		return -1;
+	}
+
+	public void buildElementAssociations(ParserRuleContext ctx) {
+		if (assocElement == null) {
+			assocElement = new ArrayList<>();
+			for (ParseTree node : ctx.children) {
+				if (node instanceof ParserRuleContext) {
+					Token t = ((ParserRuleContext) node).getStart();
+					assocElement.add(new ElementAssoc(Node.RULE, t, node));
+				} else if (node instanceof TerminalNodeImpl) {
+					Token t = ((TerminalNodeImpl) node).getSymbol();
+					if (node instanceof ErrorNodeImpl) {
+						assocElement.add(new ElementAssoc(Node.ERROR, t, node));
+					} else {
+						assocElement.add(new ElementAssoc(Node.TERMINAL, t, node));
+					}
+				} else {
+					Log.warn(this, "Unexpected node type skipped: " + node.getClass().getName());
+				}
+			}
+		}
+	}
+}
+>>
+
+DescriptorClass(packageName, grammarName, genName) ::= <<
+package %packageName%.converter.descriptors;
+
+import %packageName%.converter.BaseDescriptor;
+import %packageName%.parser.gen.%grammarName%Parser.%genName%Context;
+import %packageName%.converter.Value;
+import %packageName%.types.ValueType;
+
+
+public class %genName%Descriptor extends BaseDescriptor {
+
+	public %genName%Descriptor(%genName%Context ctx) {
+		super(ctx);
+	}
+
+	public void initialize() {
+		resolved = true;
+	}
+
+	public Value process() {
+		return Value.TRUE;
+	}
+
+	private %genName%Context context() {
+		return (%genName%Context) ctx;
+	}
+}
+>>
+
+ValueClass(packageName) ::= <<
+package %packageName%.converter;
+
+public class Value {
+
+	public static final Value TRUE = new Value(1, "", true);
+	public static final Value FALSE = new Value(0, "", true);
+	public static final Value INVALID = new Value(0, "", false);
+
+	public final String value;
+	public final String unit;
+	public final boolean valid;
+
+	public Value(String value) {
+		this.value = value;
+		this.unit = "";
+		this.valid = true;
+	}
+
+	public Value(String value, String unit, boolean valid) {
+		this.value = value;
+		this.unit = unit;
+		this.valid = valid;
+	}
+
+	public String value() {
+		return value;
+	}
+}
+>>
