@@ -9,7 +9,44 @@ public class Log {
 
 	private static Logger logger = Logger.getLogger(Log.class);
 
+	private static Level LogLevel = Level.WARN;
+
+	public static enum Level {
+		DEBUG(5),
+		INFO(4),
+		WARN(3),
+		ERROR(2),
+		FATAL(1),
+		SILENT(0);
+
+		private int priority;
+
+		Level(int priority) {
+			this.priority = priority;
+		}
+
+		public boolean check() {
+			return this.priority <= LogLevel.priority;
+		}
+
+		public static Level getValue(String level) {
+			Level found = WARN;
+			try {
+				found = Level.valueOf(level.trim().toUpperCase());
+			} catch (IllegalArgumentException e) {}
+			return found;
+		}
+	}
+
 	private Log() {}
+
+	public static void setLevel(Level logLevel) {
+		Log.LogLevel = logLevel;
+	}
+
+	public static void setLevel(String level) {
+		setLevel(Level.getValue(level));
+	}
 
 	public static void info(Object source, String message) {
 		info(source, true, message, null);
@@ -25,11 +62,13 @@ public class Log {
 
 	public static void info(Object source, boolean debug, String message, Throwable e) {
 		if (!debug) return;
-		logger = Logger.getLogger(source.getClass());
-		if (e == null) {
-			logger.info(message);
-		} else {
-			logger.info(message, e);
+		if (Level.INFO.check()) {
+			logger = Logger.getLogger(source.getClass());
+			if (e == null) {
+				logger.info(message);
+			} else {
+				logger.info(message, e);
+			}
 		}
 	}
 
@@ -47,11 +86,13 @@ public class Log {
 
 	public static void debug(Object source, boolean debug, String message, Throwable e) {
 		if (!debug) return;
-		logger = Logger.getLogger(source.getClass());
-		if (e == null) {
-			logger.debug(message);
-		} else {
-			logger.debug(message, e);
+		if (Level.DEBUG.check()) {
+			logger = Logger.getLogger(source.getClass());
+			if (e == null) {
+				logger.debug(message);
+			} else {
+				logger.debug(message, e);
+			}
 		}
 	}
 
@@ -69,11 +110,13 @@ public class Log {
 
 	public static void warn(Object source, boolean debug, String message, Throwable e) {
 		if (!debug) return;
-		logger = Logger.getLogger(source.getClass());
-		if (e == null) {
-			logger.warn(message);
-		} else {
-			logger.warn(message, e);
+		if (Level.WARN.check()) {
+			logger = Logger.getLogger(source.getClass());
+			if (e == null) {
+				logger.warn(message);
+			} else {
+				logger.warn(message, e);
+			}
 		}
 	}
 
@@ -91,36 +134,17 @@ public class Log {
 
 	public static void error(Object source, boolean debug, String message, Throwable e) {
 		if (!debug) return;
-		logger = Logger.getLogger(source.getClass());
-		if (e == null) {
-			logger.error(message);
-		} else {
-			logger.error(message, e);
-		}
-	}
-
-	public static void fatal(Object source, String message) {
-		fatal(source, true, message, null);
-	}
-
-	public static void fatal(Object source, boolean debug, String message) {
-		fatal(source, debug, message, null);
-	}
-
-	public static void fatal(Object source, String message, Throwable e) {
-		fatal(source, true, message, e);
-	}
-
-	public static void fatal(Object source, boolean debug, String message, Throwable e) {
-		if (!debug) return;
-		logger = Logger.getLogger(source.getClass());
-		if (e == null) {
-			logger.fatal(message);
-		} else {
-			logger.fatal(message, e);
+		if (Level.ERROR.check()) {
+			logger = Logger.getLogger(source.getClass());
+			if (e == null) {
+				logger.error(message);
+			} else {
+				logger.error(message, e);
+			}
 		}
 	}
 }
+
 >>
 
 ReflectClass(packageName) ::= <<
@@ -214,5 +238,173 @@ public class Reflect {
 		}
 		return object;
 	}
+	
+	public static String simpleClassName(Object arg) {
+		String name = arg.getClass().getCanonicalName();
+		if (name != null) {
+			int mark = name.lastIndexOf('.');
+			if (mark > 0) {
+				return name.substring(mark + 1);
+			}
+		}
+		return "<unknown>";
+	}
+	
 }
+
 >>
+
+StringsClass(packageName) ::= <<
+package %packageName%.util;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+
+import %packageName%.converter.Value;
+
+import org.apache.commons.io.FilenameUtils;
+
+public class Strings {
+
+	/** Platform dependent end-of-line marker */
+	public static final String eol = System.lineSeparator();
+	/** Platform dependent path separator mark */
+	public static final char pathSep = File.separatorChar;
+
+	/** classpath (and unix) separator) */
+	private static final String STD_SEPARATOR = "/";
+
+	/** Windows separator character for classpath use. */
+	private static final String WINDOWS_SEPARATOR = "\\\\";
+
+	/** Reference characters */
+	private static char[] R = { '$', '@', '.', '#' };
+
+	/** Quoting character pairs */
+	private static char[][] Q = {
+			{ '\'', '\'' },
+			{ '\"', '\"' },
+			{ '[', ']' },
+			{ '(', ')' },
+			{ '{', '}' },
+			{ '<', '>' }
+	};
+
+	public static String asString(ArrayList<String> values, boolean asPrefix, String sep) {
+		StringBuilder sb = new StringBuilder();
+		String pf = asPrefix ? sep : "";
+		String sf = asPrefix ? "" : sep;
+		for (String value : values) {
+			sb.append(pf + value + sf);
+		}
+		if (!asPrefix) { // removes trailing sep by default
+			int beg = sb.length() - 1 - sep.length();
+			sb.delete(beg, sb.length());
+		}
+		return sb.toString();
+	}
+
+	public static boolean numeric(String value) {
+		if (value.length() == 0) return false; // empty string is a string
+		try {
+			Double.parseDouble(value);
+		} catch (NumberFormatException e) {
+			return false;
+		}
+		return true;
+	}
+
+	public static String csvValueList(List<Value> valueList) {
+		return csvValueList(valueList, ", ");
+	}
+
+	public static String csvValueList(List<Value> valueList, String sep) {
+		if (valueList == null) return "";
+		StringBuilder sb = new StringBuilder();
+		for (Value v : valueList) {
+			sb.append(v.basis + sep);
+		}
+		return sb.toString().substring(0, sb.length() - sep.length());
+	}
+
+	public static String csvList(List<String> stringList) {
+		if (stringList == null) return "";
+		StringBuilder sb = new StringBuilder();
+		for (String str : stringList) {
+			sb.append(str + ", ");
+		}
+		int len = sb.length();
+		sb.delete(len - 2, len);
+		return sb.toString();
+	}
+
+	/**
+	 * Remove leading reference identifier. No error if the identifier is not present.
+	 */
+	public static String varName(String varRef) {
+		for (int idx = 0; idx < R.length; idx++) {
+			if (varRef.charAt(0) == R[idx]) {
+				return varRef.substring(1);
+			}
+		}
+		return varRef;
+	}
+
+	/**
+	 * Remove one level of quotes surrounding the literal. No error if quotes are not present or are mixed.
+	 */
+	public static String deQuote(String literal) {
+		int endIdx = literal.length() - 1;
+		if (endIdx < 2) return literal;
+		char beg = literal.charAt(0);
+		char end = literal.charAt(endIdx);
+		for (int idx = 0; idx < Q.length; idx++) {
+			if (beg == Q[idx][0] && end == Q[idx][1]) {
+				return literal.substring(1, endIdx);
+			}
+		}
+		return literal;
+	}
+
+	/**
+	 * Convert separators so the string is a valid URL appropriate for classpath discovery
+	 */
+	public static String concatAsClassPath(String... args) {
+		return concat(args).replaceAll(WINDOWS_SEPARATOR, STD_SEPARATOR);
+	}
+
+	/**
+	 * Generalized concatenation of path strings
+	 */
+	public static String concat(String... args) {
+		String result = "";
+		for (String arg : args) {
+			result = FilenameUtils.concat(result, arg);
+		}
+		return result;
+	}
+
+	public static String indentBlock(String ci, String block) {
+		if (block == null) return "<Error: indent block is null>";
+		StringReader sr = new StringReader(block);
+		BufferedReader buf = new BufferedReader(sr);
+		StringBuilder sb = new StringBuilder();
+		String s;
+		try {
+			while ((s = buf.readLine()) != null) {
+				sb.append(ci + s + Strings.eol);
+			}
+			sb.setLength(sb.length() - Strings.eol.length());
+		} catch (IOException e) {
+			sb.append("<Error indenting block: " + e.getMessage() + ">");
+		}
+		return sb.toString();
+	}
+}
+
+>>
+

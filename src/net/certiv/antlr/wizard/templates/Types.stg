@@ -1,0 +1,167 @@
+delimiters "%", "%"
+
+ValueTypeClass(packageName) ::= <<
+package %packageName%.types;
+
+/** The type of the asString contained by a descriptor */
+public enum ValueType {
+	//
+	EXECUTABLE("Executable", StyleType.ACTION),
+	OP("Op", StyleType.ACTION),
+	//
+	COMMAND("Command", StyleType.COMMAND),
+	DEFINE("Define", StyleType.COMMAND),
+	DEFER("Defer", StyleType.COMMAND),
+	INCLUDE("Include", StyleType.COMMAND),
+	REPEAT("Repeat", StyleType.COMMAND),
+	UNKNOWN("Unknown", StyleType.COMMAND),
+	//
+	ELEMENT("Element", StyleType.TAG),
+	CLASS("Class", StyleType.TAG),
+	ID("Id", StyleType.TAG),
+	ATTR("Attr", StyleType.TAG),
+	SELECTOR("Selector", StyleType.TAG),
+	//
+	CONTENT("Content", StyleType.CONTENT),
+	TEXT("Text", StyleType.CONTENT),
+	TEMPLATE("Template", StyleType.CONTENT),
+	//
+	NUMBER("Number", StyleType.LITERAL),
+	NAME("Name", StyleType.LITERAL),
+	LITERAL("Literal", StyleType.LITERAL),
+	//
+	STYLEVAR("StyleVar", StyleType.VARIABLE),
+	VARIABLE("Variable", StyleType.VARIABLE),
+	ASSIGN("Assign", StyleType.VARIABLE),
+	CONCAT("Concat", StyleType.VARIABLE);
+
+	private String text;
+	private StyleType type;
+
+	ValueType(String text, StyleType type) {
+		this.text = text;
+		this.type = type;
+	}
+
+	public String text() {
+		return text;
+	}
+
+	public StyleType type() {
+		return type;
+	}
+
+	public String toString() {
+		return text;
+	}
+}
+
+>>
+
+StyleTypeClass(packageName) ::= <<
+package %packageName%.types;
+
+public enum StyleType {
+	TAG,
+	STYLED,
+	//
+	ACTION,
+	COMMAND,
+	CONTENT,
+	LITERAL,
+	VARIABLE;
+}
+
+>>
+
+ContentClass(packageName) ::= <<
+package %packageName%.types;
+
+public enum Content {
+	STRING, 
+	TEMPLATE;
+}
+
+>>
+
+ScopeTypeClass(packageName) ::= <<
+package %packageName%.types;
+
+public enum ScopeType {
+	GLOBAL,
+	LOCAL;
+}
+
+>>
+
+StmtTypeClass(packageName) ::= <<
+package %packageName%.types;
+
+public enum StmtType {
+	RULE,
+	TERMINAL,
+	ERROR;
+
+}
+
+>>
+
+OpClass(packageName) ::= <<
+package %packageName%.types;
+
+import java.util.HashMap;
+
+public enum Op {
+	// maths
+	PLUS("+"),
+	MINUS("-"),
+	MULT("*"),
+	DIV("/"),
+	MOD("\%"),
+
+	// logics (Function\'s suppport)
+	EQ("="),
+	EQV("=="),
+	NEQ("!="),
+	LT("<"),
+	LTE("<="),
+	GT(">"),
+	GTE(">=");
+
+	private final String type;
+	private static final HashMap<String, Op> types;
+
+	// Note: executed after enum construction.
+	// Note: values() is a builtin, hidden iterable of the enums.
+	static {
+		types = new HashMap<>();
+		for (Op op : values()) {
+			Op.types.put(op.type(), op);
+		}
+	}
+
+	Op(String type) {
+		this.type = type;
+	}
+
+	public String type() {
+		return this.type;
+	}
+
+	// Note: Enum.valueOf(String) is keyed to the corresponding enum's *name* string.
+	public static Op typeOf(String type) {
+		Op result = types.get(type);
+		if (result != null)
+			return result;
+		if (type == null)
+			throw new NullPointerException("Type is null");
+		throw new IllegalArgumentException("No enum constant " + "Op." + type);
+	}
+
+	@Override
+	public String toString() {
+		return this.type;
+	}
+}
+
+>>

@@ -1,13 +1,18 @@
 delimiters "%", "%"
 
-FirstPhaseClass(packageName, grammarName, phaseNumber) ::= <<
+FirstPhaseClass(packageName, grammarName, genName, phaseNumber) ::= <<
 package %packageName%.converter;
 
+import java.util.ArrayList;
+
+import %packageName%.converter.descriptors.%genName%Descriptor;
+import %packageName%.generator.IOProcessor;
+import %packageName%.parser.gen.%grammarName%Parser.%genName%Context;
 import %packageName%.util.Log;
 import %packageName%.util.Reflect;
 
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 public class %grammarName%Phase%phaseNumber% extends %grammarName%PhaseBase {
 
@@ -16,12 +21,25 @@ public class %grammarName%Phase%phaseNumber% extends %grammarName%PhaseBase {
 
 	/**
 	 * Phase Plan: <br>
-	 * -- initialize default values for all subsequent phases <br>
 	 * -- create typed descriptor objects for context instances <br>
 	 * -- if enabled, examine and collect comments from hidden-channel <br>
+	 * -- initialize descriptors <br>
+	 * -- where the descriptor is contextually complete, mark the descriptor 'resolved' <br>
+	 * 
+	 * @param processor
 	 */
-	public %grammarName%Phase01(CommonTokenStream tokens) {
-		super(tokens);
+	public %grammarName%Phase%phaseNumber%(PhaseState state, IOProcessor processor) {
+		super(state, processor);
+		this.state.nodeContextMap = new ParseTreeProperty<BaseDescriptor>();
+		this.state.commentMarkers = new ArrayList<Integer>();
+		Log.info(this, "Phase " + phase + ": Starting...");
+	}
+
+	@Override
+	public void exit%genName%(%genName%Context ctx) {
+		super.exit%genName%(ctx);
+		%genName%Descriptor descriptor = (%genName%Descriptor) getDescriptor(ctx);
+		Log.info(this, "Phase " + phase + ": completed (resolved: " + descriptor.resolved + ")");
 	}
 
 	public void collectComments(boolean collect) {
@@ -55,6 +73,15 @@ public class %grammarName%Phase%phaseNumber% extends %grammarName%PhaseBase {
 
 		Log.info(this, "Phase " + phase + ": Created " + className);
 	}
+
+	@Override
+	public void exitEveryRule(ParserRuleContext ctx) {
+		super.exitEveryRule(ctx);
+		BaseDescriptor descriptor = getDescriptor(ctx);
+		descriptor.initialize();
+
+		Log.info(this, "Phase " + phase + ": Initialized (resolved: " + descriptor.resolved + ")");
+	}
 }
 >>
 
@@ -76,24 +103,18 @@ import %packageName%.parser.gen.%grammarName%Parser.%genName%Context;
 
 PhaseClassClass(packageName, grammarName, phaseNumber) ::= <<
 
+import %packageName%.generator.IOProcessor;
+import %packageName%.types.ScopeType;
 import %packageName%.util.Log;
-
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
+import %packageName%.util.Reflect;
 
 public class %grammarName%Phase%phaseNumber% extends %grammarName%PhaseBase {
 
 	public static final int phase = %phaseNumber%;
+	public static boolean statusResolved = true;
+
+	private int startingGen;
 	
-
->>
-
-PhaseClassInitialConstructor(packageName, grammarName, phaseNumber) ::= <<
-
-	public %grammarName%Phase%phaseNumber%(CommonTokenStream tokens) {
-		super(tokens);
-	}
-
 
 >>
 
@@ -101,20 +122,29 @@ PhaseClassConstructor(packageName, grammarName, phaseNumber) ::= <<
 
 	/**
 	 * Phase Plan: <br>
-	 * -- pull context data into their descriptors to simplify accessing values <br>
-	 * -- where the descriptor contains all of the context data, mark the descriptor 'resolved' <br>
+	 * -- build a symbol (substitution) table for expressions <br>
+	 * -- symbols are scoped local to each body <br>
+	 * -- process the descriptors to resolve dynamic values <br>
+	 * -- unresolved nodes are reported as errors.<br>
+	 * 
+	 * @param processor
 	 */
-	public %grammarName%Phase%phaseNumber%(%grammarName%PhaseBase prior) {
-		super(prior.nodeContextMap, prior.commentMarkers, prior.tree, prior.tokens);
+	public %grammarName%Phase%phaseNumber%(%grammarName%PhaseBase prior, IOProcessor processor) {
+		super(prior.state, processor);
+		this.startingGen = prior.state.symTable.getCurrentGen();
 	}
-
-
->>
-
-PhaseClassComments() ::= <<
-
-	public void collectComments(boolean collect) {
-		this.collectComments = collect;
+	
+	public boolean balanceCheck() {
+		if (state.symTable.currentScope().genId != startingGen) {
+			Log.warn(this, "Unbalanced scopes! Start: " + startingGen + ", Ended: " + state.symTable.getCurrentGen());
+			if (startingGen == 0) {
+				if (state.symTable.currentScope().type != ScopeType.GLOBAL) {
+					Log.warn(this, "Did not end at GLOBAL.");
+				}
+			}
+			return false;
+		}
+		return true;
 	}
 
 >>
@@ -125,16 +155,12 @@ PhaseClassEnterMethod(genName) ::= <<
 	@Override
 	public void enter%genName%(%genName%Context ctx) {
 		super.enter%genName%(ctx);
-		%genName%ContextDescriptor descriptor = new %genName%ContextDescriptor(ctx, tokens);
-		setDescriptor(ctx, descriptor);
-
-		if (descriptor.collectComments) {
-			descriptor.collectComments = collectComments;
-			descriptor.commentLeft = commentLeft(ctx);
-			descriptor.commentRight = commentRight(ctx);
-		}
+		state.symTable.pushScope();
+		Log.debug(this, "Phase " + phase + ": New local scope");
+		%genName%Descriptor descriptor = (%genName%Descriptor) getDescriptor(ctx);
+		descriptor.initialize();
+		descriptor.process();
 	}
-
 
 >>
 
@@ -144,16 +170,77 @@ PhaseClassExitMethod(genName) ::= <<
 	@Override
 	public void exit%genName%(%genName%Context ctx) {
 		super.exit%genName%(ctx);
-		%genName%ContextDescriptor descriptor = (%genName%ContextDescriptor) getDescriptor(ctx);
+		%genName%Descriptor descriptor = (%genName%Descriptor) getDescriptor(ctx);
+		descriptor.process();
+		state.symTable.popScope();
 
-		Log.info(this, "Phase " + phase + ": Exiting %genName% context:\r\n " + descriptor.toString());
+		String name = Reflect.simpleClassName(descriptor);
+		Log.debug(this, "Phase " + phase + ": " + name + " processed (resolved: " + descriptor.resolved + ")");
 	}
-
 
 >>
 
 PhaseClassTrailer() ::= <<
 
+}
+
+>>
+
+PhaseStateClass(packageName) ::= <<
+package %packageName%.converter;
+
+import java.util.ArrayList;
+import java.util.Stack;
+
+import %packageName%.symbol.SymbolTable;
+import %packageName%.util.Log;
+
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeProperty;
+
+public class PhaseState {
+
+	// shared data among all descriptors
+	public SymbolTable symTable;
+	public CommonTokenStream tokens; // the reference token stream
+	public ParseTreeProperty<BaseDescriptor> nodeContextMap;
+	public ArrayList<Integer> commentMarkers;
+	public StringBuilder doc; // output buffer
+
+	private final Stack<PhaseState> stack;
+
+	public PhaseState() {
+		stack = new Stack<>();
+		symTable = new SymbolTable();
+		doc = new StringBuilder();
+	}
+
+	private PhaseState(PhaseState state) {
+		stack = state.stack;
+		symTable = state.symTable.clone();
+		doc = new StringBuilder();
+	}
+
+	public PhaseState save() {
+		stack.push(this);
+		return new PhaseState(this);
+	}
+
+	public PhaseState restore() {
+		if (depth() < 1) {
+			Log.error(this, "No further PhaseState to restore.");
+			return this;
+		}
+		return stack.pop();
+	}
+
+	public int depth() {
+		return stack.size();
+	}
+
+	public PhaseState clone() {
+		return new PhaseState(this);
+	}
 }
 
 >>

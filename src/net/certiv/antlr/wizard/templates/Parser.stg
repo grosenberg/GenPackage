@@ -11,37 +11,45 @@ options {
 	package %packageName%.parser.gen;
 }
 
+@members {
+	public boolean LA(int... expected) {
+		int t = ((CommonTokenStream) _input).LA(1);
+		for (int e : expected) {
+			if (e == t) return true;
+		}
+		return false;
+	}
+}
 
 // PARSER /////////////////////////////////////////////
 
 %startRule%
-	: object
-	| array
+	: ( object | array )* EOF
 	;	
 
 object
-	: OBRACE element (SEP element)* CBRACE
-	| OBRACE CBRACE
+	: OBrace element (Sep element)* CBrace
+	| OBrace CBrace
 	;
 	
 element
-	: STRING COLON value
+	: String Colon value
 	;	
 	
 array
-	: OBRACKET value (SEP value)* CBRACKET
-	| OBRACKET CBRACKET
+	: OBracketvalue (Sep value)* CBracket
+	| OBracket CBracket
 	;
 
 	
 value
-	: STRING
-	| NUMBER
+	: String
+	| Number
 	| object  
 	| array  
-	| TRUE   
-	| FALSE
-	| NULL
+	| True 
+	| False
+	| Null
 	;
 
 >>
@@ -60,60 +68,30 @@ lexer grammar %grammarName%Lexer;
 
 // LEXER /////////////////////////////////////////////
 
-/////////////////// FRAGMENTS //////////////////
-
-fragment DIGIT	: [0-9] ;
-fragment INT	: [-]? ('0' | [1-9] DIGIT*);
-fragment FRAC	: '.' DIGIT+;
-fragment EXP	: [eE] [+\-]? DIGIT+;
-
-fragment HEX 		:	[0-9a-fA-F] ;
-fragment UNICODE	:   'u' HEX HEX HEX HEX ;
-fragment ESC	// Any escaped character
-	:	'\\\\' 
-		(	[btnfr"'\\\\/]		// ordinary escaped characters
-		|	UNICODE				// Java style Unicode escape sequence
-		)
-	;
-
-// ----------
-// Whitespace
-
-fragment ML_COMMENT		: '/*' .* '*/' ;
-fragment SL_COMMENT		: '//' ~[\r\n]* ;
-
-fragment HWS			:  [ \t]+ ;
-fragment VWS			:  [\r\n\u000C]+ ;
-
-
-
 ////////////// Default Mode (alias Base) ///////////////////
 // mode Base;
 
-// -----------
-// Punctuation
-
-COLON		: ':' ;
-SEP			: ',' ;
-OBRACE		: '{' ;
-CBRACE 		: '}' ;
-OBRACKET	: '[' ;
-CBRACKET	: ']' ;
-TRUE		: 'true' ;
-FALSE		: 'false' ;
-NULL		: 'null' ;
+Colon	: COLON		;
+Sep		: COMMA		;
+OBrace	: LBRACE 	;
+CBrace 	: RBRACE 	;
+OBracket: LBRACKET 	;
+CBracket: RBRACKET 	;
+True	: TRUE 		;
+False	: FALSE 	;
+Null	: NULL 		;
 
 
 // -------------------
 // Strings and Numbers
 
-NUMBER	: INT FRAC EXP? 
+Number	: INT FRAC EXP? 
 		| INT EXP 
 		| INT
 		;
 
-STRING	:	  '"' (ESC | ~["\\\\])* '"' ;		
-	
+String	: LITERAL ;		
+
 
 // Multi-line comments handled as a single token
 Comment
@@ -123,7 +101,7 @@ Comment
 // group one or more consecutive line comments together,  
 // excluding the final line terminal(s), as a single token
 CommentLine
-	: SL_COMMENT (HWS* VWS HWS* SL_COMMENT)* -> channel(HIDDEN)
+	: SL_COMMENT -> channel(HIDDEN)
 	;
 
 // all other horizontal and vertical whitespace is separately tokenized
@@ -134,4 +112,499 @@ HorzWiteSpace
 VertWhiteSpace
 	: VWS	-> channel(HIDDEN)
 	;
+
+
+/////////////////// FRAGMENTS //////////////////
+
+// -------------------
+// Constants
+
+fragment TRUE		: 'true'  ;
+fragment FALSE		: 'false' ;
+fragment NULL		: 'null'  ;
+
+// -------------------
+// Letters, Numbers and Quoted things
+
+fragment IDENT			: LETTER | DIGIT | UNDERSCORE | MINUS ;
+fragment LETTER			: LETTER_UPPER | LETTER_LOWER ;
+fragment LETTER_UPPER	: 'A'..'Z' ;
+fragment LETTER_LOWER	: 'a'..'z' ;
+fragment DIGIT			: '0'..'9' ;
+fragment INT			: [-]? ('0' | [1-9] DIGIT*);
+fragment FRAC			: '.' DIGIT+;
+fragment EXP			: [eE] [+\-]? DIGIT+;
+
+fragment HEX 		:	[0-9a-fA-F] ;
+fragment UNICODE	:   'u' HEX HEX HEX HEX ;
+
+fragment ESC		// Any escaped character
+	:	'\\\\' 
+		(	[btnfr"'\\\\/]		// ordinary escaped characters
+		|	UNICODE				// Java style Unicode escape sequence
+		)
+	;
+
+fragment LITERAL
+    :  '"' ( ESCAPE_SEQ | ~('\\'|'"') )* '"'
+    |  '\'' ( ESCAPE_SEQ | ~('\''|'\\') ) '\''
+    ;
+
+
+// -----------
+// Punctuation
+
+fragment AT			: '@'	;
+fragment COLON		: ':'	;
+fragment SEMI		: ';'	;
+fragment LBRACE		: '{'	;
+fragment RBRACE		: '}'	;
+fragment LBRACKET	: '['	;
+fragment RBRACKET	: ']'	;
+fragment LPAREN		: '('	;
+fragment RPAREN		: ')'	;
+
+fragment LMARK		: '<'	;
+fragment RMARK		: '|>'	;
+fragment LTMPL		: '{{'	; 
+fragment RTMPL		: '}}'	; 
+
+fragment DOT		: '.'	;
+fragment HASH		: '#'	;
+fragment REF		: '$'	;
+
+fragment COMMA		: ','	;
+fragment UNDERSCORE	: '_'	;
+fragment PIPE		: '|'	;
+
+fragment OP			: PLUS | MINUS | MULT | DIV | MOD ;
+fragment PLUS		: '+'	;
+fragment MINUS		: '-'	;
+fragment MULT		: '*'	;
+fragment DIV		: '/'	;
+fragment MOD		: '\%'	;
+
+fragment FUNCTION	: ADD | SUB | MUL_EQ | DIV_EQ | MOD_EQ | EQV | NEQ | LT | LTE | GT | GTE | EQ ;
+fragment EQ			: '='	;
+fragment EQV		: '=='	;
+fragment NEQ		: '!='	;
+fragment LT			: '<'	;
+fragment LTE		: '<='	;
+fragment GT			: '>'	;
+fragment GTE		: '>='	;
+fragment ADD		: '+='	;
+fragment SUB		: '-='	;
+fragment MUL_EQ		: '*='	;
+fragment DIV_EQ		: '/='	;
+fragment MOD_EQ		: '\%='	;
+
+
+// ----------
+// Whitespace, etc.
+
+fragment SL_COMMENT		: '//' ~'\n'* ( '\n' HWS* '//' ~'\n'* )*	;
+
+fragment ML_COMMENT		: '/*' .*? '*/'
+						| '<!--' .*? '-->' 
+						;
+
+fragment HWS			:  [ \t\r] ;
+fragment VWS			:  [\n\u000C] ;
+
+fragment ESCAPE_SEQ		:   '\\' ('b'|'t'|'n'|'f'|'r'|'\"'|'\''|'\\') ;
+
 >>
+
+LexerAdapterClass(packageName, grammarName) ::= <<
+package %packageName%.parser;
+
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.Lexer;
+
+public abstract class LexerAdaptor extends Lexer {
+
+	public LexerHelper helper;
+
+	public LexerAdaptor(CharStream input) {
+		super(input);
+	}
+
+	public void setLexerHelper(LexerHelper helper) {
+		this.helper = helper;
+		helper.setLexer(this);
+	}
+
+	public boolean anyLA(String... terminals) {
+		if (helper != null) {
+			return helper.anyLA(terminals);
+		}
+		return false;
+	}
+
+	public boolean anyLB(String... terminals) {
+		if (helper != null) {
+			return helper.anyLB(terminals);
+		}
+		return false;
+	}
+
+	public boolean norLA(String... terminals) {
+		if (helper != null) {
+			return helper.norLA(terminals);
+		}
+		return false;
+	}
+
+	public boolean norLB(String... terminals) {
+		if (helper != null) {
+			return helper.norLB(terminals);
+		}
+		return false;
+	}
+}
+
+>>
+
+LexerHelperClass(packageName, grammarName) ::= <<
+package %packageName%.parser;
+
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.IntStream;
+import org.antlr.v4.runtime.Lexer;
+
+public class LexerHelper {
+
+	private Lexer lexer;
+
+	public LexerHelper() {
+		super();
+	}
+
+	public LexerHelper(Lexer lexer) {
+		super();
+		this.lexer = lexer;
+	}
+
+	public void setLexer(Lexer lexer) {
+		this.lexer = lexer;
+	}
+
+	public boolean anyLA(String... terminals) {
+		return !norLA(terminals);
+	}
+
+	public boolean norLA(String... terminals) {
+		ANTLRInputStream input = (ANTLRInputStream) lexer.getInputStream();
+
+		for (String str : terminals) {
+			int index = 0;
+			for (int idx = 0; idx < str.length(); idx++) {
+				if (input.LA(index + 1) == IntStream.EOF) {
+					break;
+				}
+				char s = str.charAt(idx);
+				char la = (char) input.LA(index + 1);
+				if (s != la) {
+					break;
+				}
+				index++;
+			}
+			if (index == str.length()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public boolean anyLB(String... terminals) {
+		return !norLB(terminals);
+	}
+
+	public boolean norLB(String... terminals) {
+		ANTLRInputStream input = (ANTLRInputStream) lexer.getInputStream();
+
+		for (String str : terminals) {
+			int index = 0;
+			for (int idx = str.length() - 1; idx >= 0; idx--) {
+				if (input.index() < str.length() - 1) {
+					break;
+				}
+				char s = str.charAt(idx);
+				char lb = (char) input.LA(index - 1);
+				if (s != lb) {
+					break;
+				}
+				index--;
+			}
+			if (index * -1 == str.length()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public int skipToEol(ANTLRInputStream input, int index) {
+		while (input.LA(index) != IntStream.EOF && input.LA(index) != '\n') {
+			index++;
+		}
+		return index;
+	}
+
+	public int skipToEoc(ANTLRInputStream input, int index) {
+		while (input.LA(index) != IntStream.EOF) {
+			if (input.LA(index) == '/' && input.LA(index - 1) == '*') {
+				return index;
+			}
+			index++;
+		}
+		return index;
+	}
+}
+
+>>
+
+ErrorListenerClass(packageName, grammarName) ::= <<
+package %packageName%.parser;
+
+import java.util.Collections;
+import java.util.List;
+
+import %packageName%.util.Log;
+
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.TokenStream;
+
+public class %grammarName%ErrorListener extends BaseErrorListener {
+
+	public int lastError = -1;
+
+	@Override
+	public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
+			String msg, RecognitionException e) {
+
+		Parser parser = (Parser) recognizer;
+		TokenStream tokens = parser.getInputStream();
+
+		Token offSymbol = (Token) offendingSymbol;
+		int thisError = offSymbol.getTokenIndex();
+		if (offSymbol.getType() == -1 && thisError == tokens.size() - 1) {
+			Log.debug(this, "Incorrect error: " + msg);
+			return;
+		}
+		if (thisError > lastError + 20) {
+			lastError = thisError - 20;
+		}
+		for (int idx = lastError + 1; idx <= thisError; idx++) {
+			Token token = tokens.get(idx);
+			if (token.getChannel() != Token.HIDDEN_CHANNEL)
+				Log.error(this, token.toString());
+		}
+		lastError = thisError;
+
+		List<String> stack = parser.getRuleInvocationStack();
+		Collections.reverse(stack);
+
+		Log.error(this, "rule stack: " + stack);
+		Log.error(this, "line " + line + ":" + charPositionInLine + " at " + offendingSymbol + ": " + msg);
+	}
+}
+
+>>
+
+LexerErrorStrategyClass(packageName, grammarName) ::= <<
+package %packageName%.parser;
+
+import %packageName%.parser.gen.%grammarName%Lexer;
+
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.LexerNoViableAltException;
+
+/**
+ * Base class for the Lexer. Combines functionality for <br>
+ * <ul>
+ * <li>lexer error strategy</li>
+ * <li>various helper routines</li>
+ * <ul>
+ * 
+ * @author Gbr
+ * 
+ */
+public class %grammarName%LexerErrorStrategy extends %grammarName%Lexer {
+
+	// ///// Error strategy /////////////////////////////
+	public %grammarName%LexerErrorStrategy(CharStream input) {
+		super(input);
+	}
+
+	public void recover(LexerNoViableAltException e) {
+		// throw new RuntimeException(e); // Bail out
+		super.recover(e);
+	}
+
+	// ///// Parse stream management ////////////////////
+
+}
+
+>>
+
+ParserErrorStrategyClass(packageName, grammarName) ::= <<
+package %packageName%.parser;
+
+/***
+ * Excerpted from "The Definitive ANTLR 4 Reference",
+ * published by The Pragmatic Bookshelf.
+ * Copyrights apply to this code. It may not be used to create training material, 
+ * courses, books, articles, and the like. Contact us if you are in doubt.
+ * We make no guarantees that this code is fit for any purpose. 
+ * Visit http://www.pragmaticprogrammer.com/titles/tpantlr2 for more book information.
+ ***/
+import org.antlr.v4.runtime.*;
+
+public class %grammarName%ParserErrorStrategy extends DefaultErrorStrategy {
+	/**
+	 * Instead of recovering from exception e, Re-throw wrote it wrapped in a generic
+	 * RuntimeException so it is not caught by the rule function catches. Exception e is the "cause"
+	 * of the RuntimeException.
+	 */
+	@Override
+	public void recover(Parser recognizer, RecognitionException e) {
+		throw new RuntimeException(e);
+	}
+
+	/**
+	 * Make sure we don't attempt to recover inline; if the parser successfully recovers, it won't
+	 * throw an exception.
+	 */
+	@Override
+	public Token recoverInline(Parser recognizer) throws RecognitionException {
+		throw new RuntimeException(new InputMismatchException(recognizer));
+	}
+
+	/** Make sure we don't attempt to recover from problems in subrules. */
+	@Override
+	public void sync(Parser recognizer) {
+	}
+}
+
+>>
+
+TokenClass(packageName, grammarName) ::= <<
+package %packageName%.parser;
+
+import %packageName%.parser.gen.%grammarName%Lexer;
+
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CommonToken;
+import org.antlr.v4.runtime.TokenSource;
+import org.antlr.v4.runtime.misc.Pair;
+
+@SuppressWarnings("serial")
+public class %grammarName%Token extends CommonToken {
+
+	private int _mode;
+	private boolean hasStyles;
+	private boolean hasBody;
+	public int x;
+
+	public %grammarName%Token(int type, String text) {
+		super(type, text);
+	}
+
+	public %grammarName%Token(Pair<TokenSource, CharStream> source, int type, int channel, int start, int stop) {
+		super(source, type, channel, start, stop);
+	}
+
+	public void setMode(int mode) {
+		_mode = mode;
+	}
+
+	@Override
+	public String toString() {
+		String chanStr = "chan=" + channel;
+		if (channel == 0) chanStr = "chan=Default";
+		if (channel == 1) chanStr = "chan=Hidden";
+		String modeStr = "mode=" + %grammarName%Lexer.modeNames[_mode];
+		if (_mode == 0) modeStr = "mode=Default";
+		String txt = getText();
+		if (txt != null) {
+			txt = txt.replaceAll("\n", "\\\\n");
+			txt = txt.replaceAll("\r", "\\\\r");
+			txt = txt.replaceAll("\t", "\\\\t");
+		} else {
+			txt = "<no text>";
+		}
+		String tokenName = "<EOF>";
+		if (type > -1) tokenName = %grammarName%Lexer.tokenNames[type];
+		return "[@" + getTokenIndex() + ", <" + start + ":" + stop + "> "
+				+ tokenName + "(" + type + ")='" + txt + "'"
+				+ ", " + chanStr + ", " + modeStr
+				+ ", " + line + ":" + getCharPositionInLine() + "]";
+	}
+
+	public void styles(boolean hasStyles) {
+		this.hasStyles = hasStyles;
+	}
+
+	public void body(boolean hasBody) {
+		this.hasBody = hasBody;
+	}
+
+	public boolean styles() {
+		return hasStyles;
+	}
+
+	public boolean body() {
+		return hasBody;
+	}
+
+	public boolean isTag() {
+		char c = getText().charAt(0);
+		return Character.isUpperCase(c);
+	}
+}
+
+>>
+
+TokenFactoryClass(packageName, grammarName) ::= <<
+package %packageName%.parser;
+
+import %packageName%.parser.gen.%grammarName%Lexer;
+
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.TokenFactory;
+import org.antlr.v4.runtime.TokenSource;
+import org.antlr.v4.runtime.misc.Pair;
+
+public class %grammarName%TokenFactory implements TokenFactory<%grammarName%Token> {
+
+	public CharStream input;
+
+	public %grammarName%TokenFactory(CharStream input) {
+		this.input = input;
+	}
+
+	@Override
+	public %grammarName%Token create(int type, String text) {
+		return new %grammarName%Token(type, text);
+	}
+
+	@Override
+	public %grammarName%Token create(Pair<TokenSource, CharStream> source, int type, String text, 
+			int channel, int start,	int stop, int line, int charPositionInLine) {
+		%grammarName%Token token = new %grammarName%Token(source, type, channel, start, stop);
+		token.setLine(line);
+		token.setCharPositionInLine(charPositionInLine);
+		TokenSource tsrc = token.getTokenSource();
+		token.setMode(((%grammarName%Lexer) tsrc)._mode);
+		return token;
+	}
+}
+
+>>
+
+
+

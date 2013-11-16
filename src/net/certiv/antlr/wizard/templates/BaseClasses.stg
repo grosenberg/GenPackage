@@ -3,10 +3,13 @@ delimiters "%", "%"
 ConverterClass(packageName, grammarName, startRule) ::= <<
 package %packageName%.converter;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import %packageName%.generator.IOProcessor;
+import %packageName%.parser.LexerHelper;
+import %packageName%.parser.%grammarName%TokenFactory;
+import %packageName%.parser.%grammarName%ErrorListener;
 import %packageName%.parser.gen.%grammarName%Lexer;
 import %packageName%.parser.gen.%grammarName%Parser;
 import %packageName%.util.Log;
@@ -15,64 +18,70 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.apache.commons.io.FileUtils;
 
 public class Converter {
 
-	public Converter() {
+	private IOProcessor processor;
+
+	public Converter(IOProcessor processor) {
 		super();
+		this.processor = processor;
 	}
 
-	public void convert(File srcFile, File dstFile) {
+	public String convert(String srcData) {
+		return convert(srcData, new PhaseState());
+	}
+
+	public String convert(String srcData, PhaseState state) {
 		String lastError = "<none>";
-		Log.info(this, "Converting " + srcFile.getName() + " -> " + dstFile.getName());
 		try {
 			lastError = "Failure in acquiring input stream.";
-			FileInputStream is = new FileInputStream(srcFile);
+			ByteArrayInputStream is = new ByteArrayInputStream(srcData.getBytes());
 			ANTLRInputStream input = new ANTLRInputStream(is);
 
 			lastError = "Failure in generating lexer token stream.";
 			%grammarName%Lexer lexer = new %grammarName%Lexer(input);
-			// %grammarName%TokenFactory factory = new %grammarName%TokenFactory(input);
-			// lexer.setTokenFactory(factory);
+			lexer.setLexerHelper(new LexerHelper());
+			%grammarName%TokenFactory factory = new %grammarName%TokenFactory(input);
+			lexer.setTokenFactory(factory);
 			CommonTokenStream tokens = new CommonTokenStream(lexer);
 
 			lastError = "Failure in parser production.";
 			%grammarName%Parser parser = new %grammarName%Parser(tokens);
-			// parser.setTokenFactory(factory);
-			// parser.removeErrorListeners(); // remove ConsoleErrorListener
-			// parser.addErrorListener(new %grammarName%ErrorListener());
+			parser.setTokenFactory(factory);
+			parser.removeErrorListeners(); // remove ConsoleErrorListener
+			parser.addErrorListener(new %grammarName%ErrorListener());
 			// parser.setErrorHandler(new %grammarName%ParserErrorStrategy());
-			ParseTree tree = parser.metalSpec();
+			ParseTree tree = parser.%startRule%();
 
 			ParseTreeWalker walker = new ParseTreeWalker();
 
 			lastError = "Failure in parse phase 1.";
-			%grammarName%Phase01 phase01 = new %grammarName%Phase01(tokens);
+			state.tokens = tokens;
+			%grammarName%Phase01 phase01 = new %grammarName%Phase01(state, processor);
 			phase01.collectComments(true);
 			walker.walk(phase01, tree);
 
 			lastError = "Failure in parse phase 2.";
-			%grammarName%Phase02 phase02 = new %grammarName%Phase02(phase01);
+			%grammarName%Phase02 phase02 = new %grammarName%Phase02(phase01, processor);
 			walker.walk(phase02, tree);
 
+			if (!%grammarName%Phase02.statusResolved) {
+				Log.warn(this, "Failure to resolve source description");
+				return "";
+			}
+
 			lastError = "Failure in parse phase 3.";
-			%grammarName%Phase03 phase03 = new %grammarName%Phase03(phase02);
+			%grammarName%Phase03 phase03 = new %grammarName%Phase03(phase02, processor);
 			walker.walk(phase03, tree);
-
-			lastError = "Failure in parse phase 6.";
-			%grammarName%Phase06 phase06 = new %grammarName%Phase06(phase03);
-			walker.walk(phase06, tree);
-
-			lastError = "Failure in parse phase 10.";
-			%grammarName%Phase10 phase10 = new %grammarName%Phase10(phase06);
-			walker.walk(phase10, tree);
-
-			lastError = "Failure in final report production.";
-			FileUtils.write(dstFile, tree.toStringTree());
 			Log.info(this, "Convertion complete.");
+			
+			Log.info(this, "Convertion complete.");
+			return state.doc.toString();
+			
 		} catch (IOException e) {
 			Log.error(this, lastError, e);
+			return "";
 		}
 	}
 }
@@ -81,59 +90,54 @@ public class Converter {
 PhaseBaseClass(packageName, grammarName) ::= <<
 package %packageName%.converter;
 
-import java.util.ArrayList;
+import java.util.List;
 
+import %packageName%.generator.IOProcessor;
 import %packageName%.parser.gen.%grammarName%Lexer;
 import %packageName%.parser.gen.%grammarName%ParserBaseListener;
 
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 public class %grammarName%PhaseBase extends %grammarName%ParserBaseListener {
 
-	/**
-	 * Constructor for initial phase
-	 */
-	public %grammarName%PhaseBase(CommonTokenStream tokens) {
-		super();
-		BaseDescriptor.tokens = tokens;
-		BaseDescriptor.nodeContextMap = new ParseTreeProperty<NodeContextDescriptor>();
-		BaseDescriptor.commentMarkers = new ArrayList<Integer>();
-	}
+	protected PhaseState state;
+	protected IOProcessor processor;
 
 	/**
-	 * Constructor for subsequent phases
+	 * Constructor with phase transference
 	 */
-	public %grammarName%PhaseBase() {
+	public %grammarName%PhaseBase(PhaseState state, IOProcessor processor) {
 		super();
+		this.state = state;
+		this.processor = processor;
 	}
 
 	public BaseDescriptor getDescriptor(ParseTree ctx) {
-		return BaseDescriptor.nodeContextMap.get(ctx);
+		return this.state.nodeContextMap.get(ctx);
 	}
 
 	public void setDescriptor(ParseTree ctx, BaseDescriptor ncd) {
-		BaseDescriptor.nodeContextMap.put(ctx, ncd);
+		this.state.nodeContextMap.put(ctx, ncd);
 	}
 
-	public String childText(ParserRuleContext<Token> rc, int idx) {
+	public String childText(ParserRuleContext rc, int idx) {
 		return rc.getChild(idx).getText();
 	}
 
-	public String commentLeft(ParserRuleContext<Token> rc) {
+	public String commentLeft(ParserRuleContext rc) {
 		int tdx = rc.getStart().getTokenIndex();
+		if (tdx <= 0) return "";
 		int jdx = tdx - 1;
 		boolean onlyWS = true;
 		boolean done = false;
 		while (!done) {
-			switch (tokens.get(jdx).getType()) {
-				case %grammarName%Lexer.COMMENT:
-				case %grammarName%Lexer.COMMENT_BLOCK:
+			switch (this.state.tokens.get(jdx).getType()) {
+				case %grammarName%Lexer.Comment:
+				case %grammarName%Lexer.CommentLine:
 					onlyWS = false;
-				case %grammarName%Lexer.HWS:
-				case %grammarName%Lexer.VWS:
+				case %grammarName%Lexer.HorzWS:
+				case %grammarName%Lexer.VertWS:
 					if (jdx > 0) {
 						jdx--;
 					} else {
@@ -145,29 +149,29 @@ public class %grammarName%PhaseBase extends %grammarName%ParserBaseListener {
 			}
 		}
 		if (onlyWS) return "";
-		if (commentMarkers.contains(jdx)) {
+		if (this.state.commentMarkers.contains(jdx)) {
 			return "";
 		} else {
-			commentMarkers.add(jdx);
+			this.state.commentMarkers.add(jdx);
 		}
 
 		StringBuilder sb = new StringBuilder();
 		for (; jdx < tdx; jdx++) {
-			sb.append(tokens.get(jdx).getText());
+			sb.append(this.state.tokens.get(jdx).getText());
 		}
 		return sb.toString();
 	}
 
-	public String commentRight(ParserRuleContext<Token> rc) {
+	public String commentRight(ParserRuleContext rc) {
 		int tdx = rc.getStop().getTokenIndex();
 		int jdx = tdx + 1;
 		boolean onlyWS = true;
 		boolean done = false;
 		while (!done) {
-			switch (tokens.get(jdx).getType()) {
-				case %grammarName%Lexer.COMMENT_LINE:
+			switch (this.state.tokens.get(jdx).getType()) {
+				case %grammarName%Lexer.CommentLine:
 					onlyWS = false;
-				case %grammarName%Lexer.HWS:
+				case %grammarName%Lexer.HorzWS:
 					jdx++;
 					break;
 				case %grammarName%Lexer.EOF:
@@ -178,15 +182,15 @@ public class %grammarName%PhaseBase extends %grammarName%ParserBaseListener {
 			}
 		}
 		if (onlyWS) return "";
-		if (commentMarkers.contains(jdx)) {
+		if (this.state.commentMarkers.contains(jdx)) {
 			return "";
 		} else {
-			commentMarkers.add(jdx);
+			this.state.commentMarkers.add(jdx);
 		}
 
 		StringBuilder sb = new StringBuilder();
 		for (tdx++; tdx <= jdx; tdx++) {
-			sb.append(tokens.get(tdx).getText());
+			sb.append(this.state.tokens.get(tdx).getText());
 		}
 		return sb.toString();
 	}
@@ -202,5 +206,16 @@ public class %grammarName%PhaseBase extends %grammarName%ParserBaseListener {
 		if (idx == -1) return qualifiedName;
 		return qualifiedName.substring(0, idx);
 	}
+
+	public ParseTree nextPeer(ParserRuleContext ctx, int idx) {
+		List<ParseTree> ctxs = ctx.children;
+		if (idx + 1 < ctxs.size()) {
+			return ctxs.get(idx + 1);
+		}
+		return null;
+	}
 }
+
 >>
+
+
