@@ -41,7 +41,7 @@ public class Converter {
 
 			lastError = "Failure in generating lexer token stream.";
 			%grammarName%Lexer lexer = new %grammarName%Lexer(input);
-			lexer.setLexerHelper(new LexerHelper());
+//			lexer.setLexerHelper(new LexerHelper());
 			%grammarName%TokenFactory factory = new %grammarName%TokenFactory(input);
 			lexer.setTokenFactory(factory);
 			CommonTokenStream tokens = new CommonTokenStream(lexer);

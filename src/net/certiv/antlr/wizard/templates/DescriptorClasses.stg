@@ -214,16 +214,18 @@ public class %genName%Descriptor extends BaseDescriptor {
 
 	@Override
 	public void initialize() {
-		resolved = true;
+				value = Value.FALSE;
 	}
 
 	@Override
 	public Value process() {
+		if (!resolved) {
+			resolved = true;
+		}
 		return Value.TRUE;
 	}
 
-	@SuppressWarnings("unused")
-	private %genName%Context context() {
+private %genName%Context context() {
 		return (%genName%Context) ctx;
 	}
 }

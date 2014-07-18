@@ -7,3 +7,5 @@ bin/
 /*.jar
 /*.xml
 /jar*.zip
+/lib/
+/jars/

@@ -83,8 +83,8 @@ public class CliOptions {
 		System.out.println("");
 		System.out.println("projectPath is  : 'D:/DevFiles/Java/WorkSpaces/Main/MyJsonProject'");
 		System.out.println("sourcePath is   : 'src'");
-		System.out.println("javaPath is     : 'C:/Program Files/Java/jdk1.7.0_04/bin'");
-		System.out.println("antlrJarPath is : 'D:/DevFiles/Java/Libs/Antlr/antlr-4.0b2-complete.jar'");
+		System.out.println("javaPath is     : 'C:/Program Files/Java/jre7/bin'");
+		System.out.println("antlrJarPath is : 'D:/DevFiles/Java/Libs/Antlr/antlr-4.2-complete.jar'");
 	}
 
 	public boolean processOptions(String[] args) {

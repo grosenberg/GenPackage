@@ -37,7 +37,7 @@ element
 	;	
 	
 array
-	: OBracketvalue (Sep value)* CBracket
+	: OBracket value (Sep value)* CBracket
 	| OBracket CBracket
 	;
 
@@ -105,11 +105,11 @@ CommentLine
 	;
 
 // all other horizontal and vertical whitespace is separately tokenized
-HorzWiteSpace
+HorzWS
 	: HWS	-> channel(HIDDEN)
 	;
 
-VertWhiteSpace
+VertWS
 	: VWS	-> channel(HIDDEN)
 	;
 
@@ -146,8 +146,8 @@ fragment ESC		// Any escaped character
 	;
 
 fragment LITERAL
-    :  '"' ( ESCAPE_SEQ | ~('\\'|'"') )* '"'
-    |  '\'' ( ESCAPE_SEQ | ~('\''|'\\') ) '\''
+    :  '"' ( ESCAPE_SEQ | ~('\\\\'|'"') )* '"'
+    |  '\'' ( ESCAPE_SEQ | ~('\''|'\\\\'') ) '\''
     ;
 
 
@@ -211,7 +211,7 @@ fragment ML_COMMENT		: '/*' .*? '*/'
 fragment HWS			:  [ \t\r] ;
 fragment VWS			:  [\n\u000C] ;
 
-fragment ESCAPE_SEQ		:   '\\' ('b'|'t'|'n'|'f'|'r'|'\"'|'\''|'\\') ;
+fragment ESCAPE_SEQ		:   '\\' ('b'|'t'|'n'|'f'|'r'|'\"'|'\''|'\\\\') ;
 
 >>
 
@@ -508,7 +508,6 @@ public class %grammarName%Token extends CommonToken {
 	private int _mode;
 	private boolean hasStyles;
 	private boolean hasBody;
-	public int x;
 
 	public %grammarName%Token(int type, String text) {
 		super(type, text);
