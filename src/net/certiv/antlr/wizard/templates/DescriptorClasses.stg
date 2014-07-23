@@ -199,12 +199,16 @@ public abstract class BaseDescriptor implements IDescriptor {
 }
 >>
 
-DescriptorClass(packageName, grammarName, genName) ::= <<
+DescriptorClass(packageName, grammarName, genName, methods, imports) ::= <<
 package %packageName%.converter.descriptors;
 
+import java.util.List;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import %packageName%.converter.BaseDescriptor;
 import %packageName%.converter.Value;
 import %packageName%.parser.gen.%grammarName%Parser.%genName%Context;
+%imports:ImportClasses()%
+
 
 public class %genName%Descriptor extends BaseDescriptor {
 
@@ -214,7 +218,7 @@ public class %genName%Descriptor extends BaseDescriptor {
 
 	@Override
 	public void initialize() {
-				value = Value.FALSE;
+		value = Value.TRUE;
 	}
 
 	@Override
@@ -222,13 +226,27 @@ public class %genName%Descriptor extends BaseDescriptor {
 		if (!resolved) {
 			resolved = true;
 		}
-		return Value.TRUE;
+		return value;
 	}
 
-private %genName%Context context() {
+%methods:AccessMethod()%
+	public %genName%Context context() {
 		return (%genName%Context) ctx;
 	}
 }
+>>
+
+ImportClasses(importClass) ::= <<
+import %packageName%.parser.gen.%grammarName%Parser.%importClass%;
+
+>>
+
+AccessMethod(method) ::= <<
+	public %method.retClass% %method.presName%() {
+		return context().%method.callName%();
+	}
+
+
 >>
 
 ValueClass(packageName) ::= <<

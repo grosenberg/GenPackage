@@ -62,7 +62,7 @@ public class CliOptions {
 		// procedurals
 		options.addOption("c", "create", false, "create project files");
 		// options.addOption("t", "tools", false, "create tools and basic grammar files");
-		// options.addOption("d", "descriptors", false, "create descriptor objects and related files");
+		options.addOption("d", "descriptors", false, "create descriptor files only");
 		options.addOption("h", "help", false, "help: print usage information");
 		options.addOption("H", "Hint", false, "Hint: print example usage information");
 

@@ -31,11 +31,14 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.certiv.antlr.wizard.util.Log;
+import net.certiv.antlr.wizard.util.Strings;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -52,10 +55,27 @@ public class GenProject {
 	private static final String WINDOWS_SEPARATOR = "\\\\"; // Windows separator character.
 
 	private static final Pattern ruleName = Pattern.compile("void enter(\\w*)\\(");
+	private static final Pattern ctxClass = Pattern.compile("(public static class (\\w+) .*?\\}\\s+\\})",
+			Pattern.DOTALL);
+	private static final Pattern ctxMthds = Pattern.compile("public (\\w+)(\\<\\w+\\>)? (\\w+)\\(\\)");
 	private static final IOFileFilter antlrJar = new WildcardFileFilter("antlr-4*.jar");
-	private static final String AntlrJarName = "antlr-4.0-complete.jar";
+	private static final String AntlrJarName = "antlr-4.3-complete.jar";
 	private static final String javaDefalutHome = "C:/Program Files/Java/jre7";
 	private static final String templateDir = "net/certiv/antlr/wizard/templates";
+
+	public static class Context {
+
+		public String ctxName;
+		public List<Method> ctxMethods;
+	}
+
+	public static class Method {
+
+		public String retClass;
+		public String retType;
+		public String callName;
+		public String presName;
+	}
 
 	private static final FilenameFilter filter = new FilenameFilter() {
 
@@ -195,7 +215,7 @@ public class GenProject {
 
 			// 5) process procedural flag(s)
 			// c - conditionally create output
-			if (opts.flagCreate()) {
+			if (opts.flagCreate() || opts.flagDescriptors()) {
 				String msg = "Insufficient parameters to create directories";
 				if (checkValues(msg, config.getProjectPath(), config.getSourcePath(), config.getPackageName())) {
 
@@ -210,16 +230,18 @@ public class GenProject {
 				if (checkValues(msg, config.getProjectPath(), config.getSourcePath(), config.getPackageName(),
 						config.getAntlrJarPathName(), config.getJavaPath(), config.getGrammarName())) {
 
-					lastError = "Failure in processing tools creation";
-					createTools(config.getProjectPath(), config.getSourcePath(), config.getPackagePath(),
-							config.getAntlrJarPathName(), config.getJavaPath(), config.getGrammarName());
-					createUtils(config.getPackageName());
+					if (opts.flagCreate()) {
+						lastError = "Failure in processing tools creation";
+						createTools(config.getProjectPath(), config.getSourcePath(), config.getPackagePath(),
+								config.getAntlrJarPathName(), config.getJavaPath(), config.getGrammarName());
+						createUtils(config.getPackageName());
 
-					createSymbols(config.getPackageName());
-					createTypes(config.getPackageName());
+						createSymbols(config.getPackageName());
+						createTypes(config.getPackageName());
 
-					lastError = "Failure in processing parser creation";
-					createParser(config.getPackageName(), config.getGrammarName());
+						lastError = "Failure in processing parser creation";
+						createParser(config.getPackageName(), config.getGrammarName());
+					}
 
 					File fParser = new File(concat(dstGen, config.getGrammarName() + "Parser.java"));
 					if (fParser.exists()) {
@@ -227,13 +249,20 @@ public class GenProject {
 						lastError = "Failure in parsing the base listener";
 						List<String> genNames = parseBaseListener(config.getGrammarName());
 
-						lastError = "Failure in processing descriptors creation";
-						createBaseClasses(config.getPackageName(), config.getGrammarName());
-						createWalkerPhase(config.getPackageName(), config.getGrammarName(), genNames);
+						lastError = "Failure in parsing the parser";
+						Map<String, List<Method>> ctxs = parseParser(fParser);
 
-						lastError = "Failure in processing descriptors creation";
-						createDescritors(config.getPackageName(), config.getGrammarName(), genNames);
-						createGenerator(config.getPackageName(), config.getGrammarName());
+						if (opts.flagCreate()) {
+							lastError = "Failure in basic classes creation";
+							createBaseClasses(config.getPackageName(), config.getGrammarName());
+							createWalkerPhase(config.getPackageName(), config.getGrammarName(), genNames);
+							createGenerator(config.getPackageName(), config.getGrammarName());
+						}
+
+						if (opts.flagCreate() || opts.flagDescriptors()) {
+							lastError = "Failure in processing descriptors creation";
+							createDescritors(config.getPackageName(), config.getGrammarName(), genNames, ctxs);
+						}
 
 					} else {
 						Log.info(this, "Generate the Parser, etc. then re-run this tool");
@@ -258,7 +287,7 @@ public class GenProject {
 
 	// ///////////////////////////////////////////////////////////////////////////
 
-	public List<String> parseBaseListener(String grammarName) throws IOException {
+	private List<String> parseBaseListener(String grammarName) throws IOException {
 		List<String> genNames = new ArrayList<>();
 		String baseListener = config.readFile(concat(dstGen, grammarName + "ParserBaseListener.java"));
 		Matcher m = ruleName.matcher(baseListener);
@@ -269,6 +298,35 @@ public class GenProject {
 			}
 		}
 		return genNames;
+	}
+
+	private Map<String, List<Method>> parseParser(File fParser) throws IOException {
+		Map<String, List<Method>> ctxs = new HashMap<>();
+		String parser = config.readFile(fParser.getPath());
+		Matcher m = ctxClass.matcher(parser);
+		while (m.find()) {
+			String ctx = m.group(1);
+			String ctxName = m.group(2);
+
+			Matcher o = ctxMthds.matcher(ctx);
+			List<Method> methods = new ArrayList<>();
+			while (o.find()) {
+				Method ms = new Method();
+				ms.retClass = o.group(1);
+				ms.retType = o.group(2);
+				ms.callName = o.group(3);
+				if (o.group(2) != null) {
+					ms.retClass += ms.retType;
+					ms.retType = ms.retType.substring(1, ms.retType.length() - 1);
+				}
+				if (!ms.retClass.equals("int")) {
+					// skip odd case that bleads through the regexp
+					methods.add(ms);
+				}
+			}
+			ctxs.put(ctxName, methods);
+		}
+		return ctxs;
 	}
 
 	// ///////////////////////////////////////////////////////////////////////////
@@ -504,7 +562,8 @@ public class GenProject {
 		config.writeFile(concat(dstGenerator, "IOProcessor.java"), result);
 	}
 
-	public void createDescritors(String packageName, String grammarName, List<String> descriptorNames)
+	public void createDescritors(String packageName, String grammarName, List<String> descriptorNames,
+			Map<String, List<Method>> ctxs)
 			throws IOException {
 		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "DescriptorClasses.stg"));
 		ST st = group.getInstanceOf("IDescriptorClass");
@@ -522,16 +581,44 @@ public class GenProject {
 		st.add("packageName", packageName);
 		st.add("grammarName", grammarName);
 		for (String genName : descriptorNames) {
+			List<Method> mthSet = ctxs.get(genName + "Context");
+			updateMethodNames(mthSet);
+			List<String> impNames = filterImports(mthSet);
+
 			st.add("genName", genName);
+			st.add("methods", mthSet);
+			st.add("imports", impNames);
 			result = st.render();
 			config.writeFile(concat(dstDescriptors, genName + "Descriptor.java"), result);
 			st.remove("genName");
+			st.remove("methods");
+			st.remove("imports");
 		}
 
 		st = group.getInstanceOf("ValueClass");
 		st.add("packageName", packageName);
 		result = st.render();
 		config.writeFile(concat(dstConverter, "Value.java"), result);
+	}
+
+	private void updateMethodNames(List<Method> mthSet) {
+		for (Method m : mthSet) {
+			m.presName = Strings.tokenCase(m.callName);
+		}
+	}
+
+	private List<String> filterImports(List<Method> mthSet) {
+		ArrayList<String> impNames = new ArrayList<>();
+		for (Method m : mthSet) {
+			if (!(m.retClass.equals("TerminalNode") || (m.retType != null && m.retType.equals("TerminalNode")))) {
+				if (m.retType != null) {
+					impNames.add(m.retType);
+				} else {
+					impNames.add(m.retClass);
+				}
+			}
+		}
+		return impNames;
 	}
 
 	public void createTools(String projectPath, String sourcePath, String packagePath, String antlrJarPath,
