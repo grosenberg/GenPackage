@@ -1,18 +1,25 @@
-The GenProject Wizard -- An Antlr v4 basic project generator.  
-(c) Gerald Rosenberg, Certiv Analytics
-BSD License.
+### Antlr GenProject Wizard -- Antlr4 project generator
+(c) 2012-2014 Gerald Rosenberg, Certiv Analytics
 
-The GenProject wizard generates Antlr v4 project using a fairly
-straightfoward form. It is unlikely to be the best or even
-preferred form.  It is simply the form that seems natural to me
-(the project originated mostly to memorialize the form for my
-own projects).
+Antlr GenProject provides a command line wizard for generating 
+an Antlr4 project framework with a fairly standard form.  The 
+directory structure is compatible with standard Eclipse/Java 
+projects. 
 
-The generated project implements two basic patterns:  
-1. a set of descriptor objects is provided so that every
-context instance has a unique, typed descriptor object instance.  
-2. a serial sequence of parse tree walker phases, where
-phase01 creates the descriptor objects and phases 02-xx are
-intended to conveniently partition operations against the
-parse tree - exactly how is up to you.
+#### License
+BSD/EPL License
 
+### The generated project implements two basic patterns:
+
+1. Descriptor pattern: a full set of descriptor classes are generated
+automatically from the Antlr generated files.  The descriptor classes 
+are type-specific to the parse tree context nodes defined by the project grammar.
+The default instantiation of the descriptors uses a decoration pattern 
+allowing simple access to the parse tree contexts and corresponding descriptors.
+
+2. Converter pattern: a generated converter class implements a serial procedure
+for lexing, parsing, and walking operations.  Multiple, sequential walking phases 
+are supported with the passing forward of state between phases. A full symbol table
+implementation is provided as part of the default state object.  As generated, 
+phase 1 constructs and initializes the descriptor object set and phase 2 invokes 
+a process method on each descriptor object. 

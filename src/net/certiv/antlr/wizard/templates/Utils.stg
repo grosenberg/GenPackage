@@ -1,145 +1,191 @@
 delimiters "%", "%"
 
 LogClass(packageName) ::= <<
+/*******************************************************************************
+ * Copyright (c) 2008-2014 G Rosenberg.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *		G Rosenberg - initial API and implementation
+ *
+ * Versions:
+ * 		1.0 - 2014.03.26: First release level code
+ *******************************************************************************/
 package %packageName%.util;
+
+
+import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
 public class Log {
 
-	private static Logger logger = Logger.getLogger(Log.class);
+	// private static Logger logger = Logger.getLogger(Log.class);
+	private static HashMap<Integer, LogLevel> logLevels = new HashMap<>();
+	private static Integer LogId = Integer.valueOf(Log.class.hashCode());
+	static {
+		setLevel(LogId, LogLevel.Warn); // sets the global default log value
+	}
 
-	private static Level LogLevel = Level.WARN;
+	public static enum LogLevel {
+		Fatal(0),
+		Error(1),
+		Warn(2),
+		Info(3),
+		Debug(4),
+		Trace(5);
 
-	public static enum Level {
-		DEBUG(5),
-		INFO(4),
-		WARN(3),
-		ERROR(2),
-		FATAL(1),
-		SILENT(0);
+		private int value;
 
-		private int priority;
-
-		Level(int priority) {
-			this.priority = priority;
+		LogLevel(int value) {
+			this.value = value;
 		}
 
-		public boolean check() {
-			return this.priority <= LogLevel.priority;
+		public int value() {
+			return value;
 		}
 
-		public static Level getValue(String level) {
-			Level found = WARN;
-			try {
-				found = Level.valueOf(level.trim().toUpperCase());
-			} catch (IllegalArgumentException e) {}
-			return found;
+		public boolean check(Object source) {
+			if (source == null) return false;
+			return this.value <= logLevelOf(source).value;
 		}
 	}
 
-	private Log() {}
-
-	public static void setLevel(Level logLevel) {
-		Log.LogLevel = logLevel;
+	/**
+	 * Sets a log level as a default for a class type. In the absence of a class specific level, the
+	 * global default is applied. For a log message to be printed, the log level must be GTE the log
+	 * level set for the source class.
+	 */
+	public static void defLevel(LogLevel level) {
+		setLevel(null, level);
 	}
 
-	public static void setLevel(String level) {
-		setLevel(Level.getValue(level));
+	public static void defLevel(String level) {
+		setLevel(null, level);
 	}
 
-	public static void info(Object source, String message) {
-		info(source, true, message, null);
+	public static void setLevel(Object source, String level) {
+		if (level == null) return;
+		level = Strings.titleCase(level);
+		setLevel(source, LogLevel.valueOf(level));
 	}
 
-	public static void info(Object source, boolean debug, String message) {
-		info(source, debug, message, null);
+	public static void setLevel(Object source, LogLevel level) {
+		if (source == null && level == null) return;
+		if (source == null) source = LogId;
+		if (level == null) level = defaultLogLevel();
+
+		int id = source.hashCode();
+		String name = objNameOf(source);
+
+		logLevels.put(id, level);
+		debug(Log.class, "Logging value set [class=" + name + ", level=" + level.toString() + "]");
 	}
 
-	public static void info(Object source, String message, Throwable e) {
-		info(source, true, message, e);
-	}
-
-	public static void info(Object source, boolean debug, String message, Throwable e) {
-		if (!debug) return;
-		if (Level.INFO.check()) {
-			logger = Logger.getLogger(source.getClass());
-			if (e == null) {
-				logger.info(message);
-			} else {
-				logger.info(message, e);
-			}
+	private static LogLevel logLevelOf(Object source) {
+		if (source == null) return defaultLogLevel();
+		LogLevel level = logLevels.get(source.hashCode());
+		if (level == null) {
+			debug(Log.class, "Log level has not been set for " + objNameOf(source));
+			setLevel(source, defaultLogLevel());
+			return defaultLogLevel();
 		}
+		return level;
+	}
+
+	private static LogLevel defaultLogLevel() {
+		return logLevels.get(LogId);
+	}
+
+	private static boolean loggable(Object source, LogLevel level) {
+		LogLevel srcLevel = logLevelOf(source);
+		if (level.value() > srcLevel.value()) return false;
+		return true;
+	}
+
+	private static String objNameOf(Object source) {
+		String fqname = source.getClass().getName();
+		int dot = fqname.lastIndexOf('.');
+		String name = dot > -1 ? fqname.substring(dot + 1) : fqname;
+		return name;
+	}
+
+	// /////////////////////////////////////////////////////////////////////////
+
+	public static void trace(Object source, String message) {
+		log(source, LogLevel.Trace, message, null);
+	}
+
+	public static void trace(Object source, String message, Throwable e) {
+		log(source, LogLevel.Trace, message, e);
 	}
 
 	public static void debug(Object source, String message) {
-		debug(source, true, message, null);
-	}
-
-	public static void debug(Object source, boolean debug, String message) {
-		debug(source, debug, message, null);
+		log(source, LogLevel.Debug, message, null);
 	}
 
 	public static void debug(Object source, String message, Throwable e) {
-		debug(source, true, message, e);
+		log(source, LogLevel.Debug, message, e);
 	}
 
-	public static void debug(Object source, boolean debug, String message, Throwable e) {
-		if (!debug) return;
-		if (Level.DEBUG.check()) {
-			logger = Logger.getLogger(source.getClass());
-			if (e == null) {
-				logger.debug(message);
-			} else {
-				logger.debug(message, e);
-			}
-		}
+	public static void info(Object source, String message) {
+		log(source, LogLevel.Info, message, null);
+	}
+
+	public static void info(Object source, String message, Throwable e) {
+		log(source, LogLevel.Info, message, e);
 	}
 
 	public static void warn(Object source, String message) {
-		warn(source, true, message, null);
-	}
-
-	public static void warn(Object source, boolean debug, String message) {
-		warn(source, debug, message, null);
+		log(source, LogLevel.Warn, message, null);
 	}
 
 	public static void warn(Object source, String message, Throwable e) {
-		warn(source, true, message, e);
-	}
-
-	public static void warn(Object source, boolean debug, String message, Throwable e) {
-		if (!debug) return;
-		if (Level.WARN.check()) {
-			logger = Logger.getLogger(source.getClass());
-			if (e == null) {
-				logger.warn(message);
-			} else {
-				logger.warn(message, e);
-			}
-		}
+		log(source, LogLevel.Warn, message, e);
 	}
 
 	public static void error(Object source, String message) {
-		error(source, true, message, null);
-	}
-
-	public static void error(Object source, boolean debug, String message) {
-		error(source, debug, message, null);
+		log(source, LogLevel.Error, message, null);
 	}
 
 	public static void error(Object source, String message, Throwable e) {
-		error(source, true, message, e);
+		log(source, LogLevel.Error, message, e);
 	}
 
-	public static void error(Object source, boolean debug, String message, Throwable e) {
-		if (!debug) return;
-		if (Level.ERROR.check()) {
-			logger = Logger.getLogger(source.getClass());
-			if (e == null) {
-				logger.error(message);
-			} else {
-				logger.error(message, e);
+	public static void fatal(Object source, String message) {
+		log(source, LogLevel.Fatal, message, null);
+	}
+
+	public static void fatal(Object source, String message, Throwable e) {
+		log(source, LogLevel.Fatal, message, e);
+	}
+
+	private static void log(Object source, LogLevel srcLevel, String message, Throwable e) {
+		if (loggable(source, srcLevel)) {
+			if (source == null) source = Log.class;
+			Logger logger = Logger.getLogger(source.getClass());
+			switch (srcLevel) {
+				case Trace:
+					logger.trace(message, e);
+					break;
+				case Debug:
+					logger.debug(message, e);
+					break;
+				case Info:
+					logger.info(message, e);
+					break;
+				case Warn:
+					logger.warn(message, e);
+					break;
+				case Error:
+					logger.error(message, e);
+					break;
+				case Fatal:
+					logger.fatal(message, e);
+					break;
 			}
 		}
 	}
@@ -148,6 +194,19 @@ public class Log {
 >>
 
 ReflectClass(packageName) ::= <<
+/*******************************************************************************
+ * Copyright (c) 2008-2014 G Rosenberg.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *		G Rosenberg - initial API and implementation
+ *
+ * Versions:
+ * 		1.0 - 2014.03.26: First release level code
+ *******************************************************************************/
 package %packageName%.util;
 
 import java.lang.reflect.Constructor;
@@ -255,6 +314,19 @@ public class Reflect {
 >>
 
 StringsClass(packageName) ::= <<
+/*******************************************************************************
+ * Copyright (c) 2008-2014 G Rosenberg.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *		G Rosenberg - initial API and implementation
+ *
+ * Versions:
+ * 		1.0 - 2014.03.26: First release level code
+ *******************************************************************************/
 package %packageName%.util;
 
 import java.io.BufferedReader;
@@ -262,6 +334,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import %packageName%.converter.Value;
@@ -342,6 +415,11 @@ public class Strings {
 		return sb.toString();
 	}
 
+	public static List<String> csvToList(String csv) {
+		String[] parts = csv.split(",");
+		return Arrays.asList(parts);
+	}
+
 	/**
 	 * Remove leading reference identifier. No error if the identifier is not present.
 	 */
@@ -388,8 +466,47 @@ public class Strings {
 		return result;
 	}
 
+	public static String ext(String pathname) {
+		File fname = new File(pathname);
+		String name = fname.getName();
+		int dot = name.lastIndexOf('.');
+		if (dot == -1 || dot == name.length() - 1) return "";
+		return name.substring(dot + 1);
+	}
+
+	public static String trimLeft(String s) {
+		int idx = 0;
+		while (idx < s.length() && Character.isWhitespace(s.charAt(idx))) {
+			idx++;
+		}
+		return s.substring(idx);
+	}
+
+	public static String trimRight(String s) {
+		int idx = s.length() - 1;
+		while (idx >= 0 && Character.isWhitespace(s.charAt(idx))) {
+			idx--;
+		}
+		return s.substring(0, idx + 1);
+	}
+
+	public static String titleCase(String word) {
+		if (word == null || word.length() == 0) return "";
+		if (word.length() == 1) return word.toUpperCase();
+		return word.substring(0, 1).toUpperCase() +
+				word.substring(1).toLowerCase();
+	}
+
+	/**
+	 * Returns the lines of the block prefixed with the indent string. Ensures a leading EOL
+	 * sequence and no trailing whitespace.
+	 *
+	 * @param ci
+	 * @param block
+	 * @return
+	 */
 	public static String indentBlock(String ci, String block) {
-		if (block == null) return "<Error: indent block is null>";
+		if (block == null) return "<Error: indent include block is null>";
 		StringReader sr = new StringReader(block);
 		BufferedReader buf = new BufferedReader(sr);
 		StringBuilder sb = new StringBuilder();
@@ -398,7 +515,11 @@ public class Strings {
 			while ((s = buf.readLine()) != null) {
 				sb.append(ci + s + Strings.eol);
 			}
-			sb.setLength(sb.length() - Strings.eol.length());
+			char c = sb.charAt(0);
+			if (c != '\n' && c != '\r') {
+				sb.insert(0, eol);
+			}
+			return trimRight(sb.toString());
 		} catch (IOException e) {
 			sb.append("<Error indenting block: " + e.getMessage() + ">");
 		}

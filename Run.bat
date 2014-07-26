@@ -1,4 +1,10 @@
 @echo off
-cd /d D:\DevFiles\Java\WorkSpaces\Main\GenProject\
 
-"C:\Program Files\Java\jre7\bin\java" -jar GenProject-1.0a4-complete.jar -c -g Json -n net.certiv.json -p D:\DevFiles\Java\WorkSpaces\Main\MyJsonProject
+SETLOCAL
+
+set javapgm="C:\Program Files\Java\jre7\bin\java"
+set wkspace="D:\DevFiles\Java\WorkSpaces\Main\"
+
+cd /d %wkspace%
+
+%javapgm% -jar GenProject-1.1-complete.jar -c -g Json -n net.certiv.json -p %wkspace%MyJsonProject

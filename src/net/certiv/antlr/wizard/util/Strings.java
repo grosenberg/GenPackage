@@ -41,4 +41,11 @@ public class Strings {
 		}
 		return true;
 	}
+
+	public static String titleCase(String word) {
+		if (word == null || word.length() == 0) return "";
+		if (word.length() == 1) return word.toUpperCase();
+		return word.substring(0, 1).toUpperCase() +
+				word.substring(1).toLowerCase();
+	}
 }
