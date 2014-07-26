@@ -1,12 +1,8 @@
 # gitignore for Eclipse
 .settings/
-attic/
-bin/
 .classpath
 .project
-/*.jar
-/*.xml
-/jar*.zip
-/lib/
-/jars/
-/github.com/
+attic/
+bin/
+lib/
+jars/
