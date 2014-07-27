@@ -63,6 +63,7 @@ public class %grammarName%Phase%phaseNumber% extends %grammarName%PhaseBase {
 			Log.error(this, "Failed to make " + className, e);
 			return;
 		}
+		descriptor.setPhaseState(state);
 		setDescriptor(ctx, descriptor);
 
 		if (collectComments) {
