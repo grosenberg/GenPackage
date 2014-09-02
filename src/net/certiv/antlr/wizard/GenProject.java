@@ -218,14 +218,13 @@ public class GenProject {
 			if (opts.flagCreate() || opts.flagDescriptors()) {
 				String msg = "Insufficient parameters to create directories";
 				if (checkValues(msg, config.getProjectPath(), config.getSourcePath(), config.getPackageName())) {
-
 					lastError = "Failure in directory structure creation";
-					createDirectoryStructure(config.getProjectPath(), config.getSourcePath(), config.getPackagePath());
+					createDirectoryStructure(opts.flagCreate(), config.getProjectPath(), config.getSourcePath(),
+							config.getPackagePath());
 				}
 
 				config.saveConfigurationFile(concat(config.getProjectPath(), config.getGrammarName()
 						+ Config.configFileSuffix));
-
 				msg = "Insufficient parameters to build project files: check the json config file.";
 				if (checkValues(msg, config.getProjectPath(), config.getSourcePath(), config.getPackageName(),
 						config.getAntlrJarPathName(), config.getJavaPath(), config.getGrammarName())) {
@@ -257,11 +256,12 @@ public class GenProject {
 							createBaseClasses(config.getPackageName(), config.getGrammarName());
 							createWalkerPhase(config.getPackageName(), config.getGrammarName(), genNames);
 							createGenerator(config.getPackageName(), config.getGrammarName());
+							createDescriptorBasis(config.getPackageName(), config.getGrammarName(), genNames, ctxs);
 						}
 
 						if (opts.flagCreate() || opts.flagDescriptors()) {
-							lastError = "Failure in processing descriptors creation";
-							createDescritors(config.getPackageName(), config.getGrammarName(), genNames, ctxs);
+							lastError = "Failure in descriptors classes creation";
+							createDescriptors(config.getPackageName(), config.getGrammarName(), genNames, ctxs);
 						}
 
 					} else {
@@ -331,7 +331,7 @@ public class GenProject {
 
 	// ///////////////////////////////////////////////////////////////////////////
 
-	public boolean createDirectoryStructure(String projectPath, String sourcePath, String packagePath) {
+	public boolean createDirectoryStructure(boolean create, String projectPath, String sourcePath, String packagePath) {
 
 		dstBase = concat(projectPath, sourcePath, packagePath);
 		dstConverter = concat(dstBase, "converter");
@@ -343,13 +343,16 @@ public class GenProject {
 		dstTypes = concat(dstBase, "types");
 		dstUtil = concat(dstBase, "util");
 
-		return createDirs(dstBase)
-				&& createDirs(dstDescriptors)
-				&& createDirs(dstGen)
-				&& createDirs(dstGenerator)
-				&& createDirs(dstSymbol)
-				&& createDirs(dstTypes)
-				&& createDirs(dstUtil);
+		if (create) {
+			return createDirs(dstBase)
+					&& createDirs(dstDescriptors)
+					&& createDirs(dstGen)
+					&& createDirs(dstGenerator)
+					&& createDirs(dstSymbol)
+					&& createDirs(dstTypes)
+					&& createDirs(dstUtil);
+		}
+		return true;
 	}
 
 	private String concat(String... args) {
@@ -562,7 +565,7 @@ public class GenProject {
 		config.writeFile(concat(dstGenerator, "IOProcessor.java"), result);
 	}
 
-	public void createDescritors(String packageName, String grammarName, List<String> descriptorNames,
+	public void createDescriptorBasis(String packageName, String grammarName, List<String> descriptorNames,
 			Map<String, List<Method>> ctxs)
 			throws IOException {
 		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "DescriptorClasses.stg"));
@@ -577,7 +580,17 @@ public class GenProject {
 		result = st.render();
 		config.writeFile(concat(dstConverter, "BaseDescriptor.java"), result);
 
-		st = group.getInstanceOf("DescriptorClass");
+		st = group.getInstanceOf("ValueClass");
+		st.add("packageName", packageName);
+		result = st.render();
+		config.writeFile(concat(dstConverter, "Value.java"), result);
+	}
+
+	public void createDescriptors(String packageName, String grammarName, List<String> descriptorNames,
+			Map<String, List<Method>> ctxs)
+			throws IOException {
+		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "DescriptorClasses.stg"));
+		ST st = group.getInstanceOf("DescriptorClass");
 		st.add("packageName", packageName);
 		st.add("grammarName", grammarName);
 		for (String genName : descriptorNames) {
@@ -588,17 +601,12 @@ public class GenProject {
 			st.add("genName", genName);
 			st.add("methods", mthSet);
 			st.add("imports", impNames);
-			result = st.render();
+			String result = st.render();
 			config.writeFile(concat(dstDescriptors, genName + "Descriptor.java"), result);
 			st.remove("genName");
 			st.remove("methods");
 			st.remove("imports");
 		}
-
-		st = group.getInstanceOf("ValueClass");
-		st.add("packageName", packageName);
-		result = st.render();
-		config.writeFile(concat(dstConverter, "Value.java"), result);
 	}
 
 	private void updateMethodNames(List<Method> mthSet) {
