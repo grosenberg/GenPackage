@@ -1,105 +1,28 @@
-/*
- * [The "BSD license"]
- *  Copyright (c) 2012 Gerald Rosenberg, Certiv Analytics
- *  All rights reserved.
+/*******************************************************************************
+ * Copyright (c) 2008-2014 G Rosenberg.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *  1. Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *  2. Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *  3. The name of the author may not be used to endorse or promote products
- *     derived from this software without specific prior written permission.
+ * Contributors:
+ *		G Rosenberg - initial API and implementation
  *
- *  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
- *  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- *  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- *  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- *  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+ * Versions:
+ * 		1.0 - 2014.03.26: First release level code
+ * 		1.1 - 2014.08.26: Updates, add Tests support
+ *******************************************************************************/
 package net.certiv.antlr.wizard;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import net.certiv.antlr.wizard.util.Log;
 import net.certiv.antlr.wizard.util.Strings;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
-import org.stringtemplate.v4.ST;
-import org.stringtemplate.v4.STGroup;
-import org.stringtemplate.v4.STGroupFile;
 
 public class GenProject {
-
-	private static final String STD_SEPARATOR = "/"; // classpath (and unix) separator)
-	private static final String WINDOWS_SEPARATOR = "\\\\"; // Windows separator character.
-
-	private static final Pattern ruleName = Pattern.compile("void enter(\\w*)\\(");
-	private static final Pattern ctxClass = Pattern.compile("(public static class (\\w+) .*?\\}\\s+\\})",
-			Pattern.DOTALL);
-	private static final Pattern ctxMthds = Pattern.compile("public (\\w+)(\\<\\w+\\>)? (\\w+)\\(\\)");
-	private static final IOFileFilter antlrJar = new WildcardFileFilter("antlr-4*.jar");
-	private static final String AntlrJarName = "antlr-4.3-complete.jar";
-	private static final String javaDefalutHome = "C:/Program Files/Java/jre7";
-	private static final String templateDir = "net/certiv/antlr/wizard/templates";
-
-	public static class Context {
-
-		public String ctxName;
-		public List<Method> ctxMethods;
-	}
-
-	public static class Method {
-
-		public String retClass;
-		public String retType;
-		public String callName;
-		public String presName;
-	}
-
-	private static final FilenameFilter filter = new FilenameFilter() {
-
-		public boolean accept(File dir, String name) {
-			if (name.toLowerCase().endsWith(".json")) return true;
-			return false;
-		}
-	};
-
-	private CliOptions opts;
-	private Config config;
-
-	private String lastError = "<none>";
-	private String cwd;
-
-	private String dstBase;
-	private String dstConverter;
-	private String dstDescriptors;
-	private String dstGenerator;
-	private String dstParser;
-	private String dstGen;
-	private String dstSymbol;
-	private String dstTypes;
-	private String dstUtil;
 
 	public static void main(String[] args) {
 		new GenProject(args);
@@ -107,609 +30,107 @@ public class GenProject {
 
 	public GenProject(String[] args) {
 		super();
-		try {
-			lastError = "Failure to determine Cwd";
-			cwd = new File(".").getCanonicalPath();
-			Log.info(this, "Cwd is " + cwd);
 
-			// 1) process cli options
-			opts = new CliOptions();
-			boolean parsed = opts.processOptions(args);
+		// evaluate the command line
+		CliOptions opts = processCliOpts(args);
+		if (!opts.isVaid()) return;
 
-			if (!parsed || opts.flagHelp() || opts.warnUnrecognized()) {
-				opts.printUsage();
-				return;
-			} else if (opts.flagHint()) {
-				opts.printHints();
-				return;
-			}
-
-			// 2) load the config with an empty settings object
-			config = new Config(opts);
-
-			// 3) try and locate a persisted settings object; install if found & valid
-			if (opts.flagProjectPath() != null && opts.flagGrammarName() != null) {
-				String configPathname = concat(opts.flagProjectPath(), opts.flagGrammarName() + Config.configFileSuffix);
-				if (!config.loadConfigurationFile(configPathname)) {
-					Log.error(this, "Failed to load/validate configuration file " + configPathname);
-					return;
-				}
-				config.setProjectPath(opts.flagProjectPath());
-				config.setGrammarName(opts.flagGrammarName());
-			} else {
-				lastError = "Could not resolve current directory.";
-				String configDir = new File(".").getCanonicalPath();
-				if (opts.flagProjectPath() != null) {
-					configDir = opts.flagProjectPath();
-				}
-				File f = new File(configDir);
-				if (f.exists() && f.isDirectory()) {
-					File[] possibleConfigs = f.listFiles(filter);
-					for (File file : possibleConfigs) {
-						if (config.validSettings(file)) {
-							lastError = "Could not resolve project path directory";
-							String fn = file.getCanonicalPath();
-							if (!config.loadConfigurationFile(fn)) {
-								Log.warn(this, "Failed to load/validate configuration file " + fn);
-							} else {
-								config.setProjectPath(opts.flagProjectPath());
-								break;
-							}
-						}
-					}
-				}
-				if (!config.getLoaded()) {
-					Log.error(this, "No configuration file found");
-					return;
-				}
-			}
-
-			// 4) got one; update from any remaining flags and save it
-
-			// --- package name
-			if (opts.flagPackageName() != null) {
-				config.setPackageName(opts.flagPackageName());
-			}
-
-			// --- java path
-			if (opts.flagJavaPath() != null) {
-				config.setJavaPath(opts.flagJavaPath());
-			} else if (opts.flagJavaPath() == null) {
-				String javaHome = System.getenv("JAVA_HOME");
-				if (javaHome == null || javaHome.length() == 0) {
-					javaHome = javaDefalutHome;
-				}
-				File f = new File(concat(javaHome, "bin"));
-				if (f.exists()) {
-					lastError = "Failure in determining default Java directory";
-					String path = f.getCanonicalPath();
-					config.setJavaPath(path);
-				}
-			}
-
-			// --- internal path
-			if (opts.flagSourcePath() != null) {
-				config.setSourcePath(opts.flagSourcePath());
-			} else if (config.getSourcePath() == null) {
-				config.setSourcePath("src");
-			}
-
-			// --- antlr jar path
-			if (opts.flagAntlrPath() != null) {
-				config.setAntlrJarPathName(opts.flagAntlrPath());
-			} else {
-				if (config.getAntlrJarPathName() == null) {
-					// first try to find the jar in the filesystem starting with the parent file
-					File cwd = new File(".");
-					List<File> fList = (List<File>) FileUtils.listFiles(cwd, antlrJar, TrueFileFilter.INSTANCE);
-					if (!fList.isEmpty()) {
-						lastError = "Failure in finding default path to Antlr Jar";
-						String antlrJarPath = fList.get(0).getCanonicalPath();
-						config.setAntlrJarPathName(antlrJarPath);
-					} else {
-						// use the default jar in jar
-						config.setAntlrJarPathName(AntlrJarName);
-					}
-				}
-			}
-
-			// 5) process procedural flag(s)
-			// c - conditionally create output
-			if (opts.flagCreate() || opts.flagDescriptors()) {
-				String msg = "Insufficient parameters to create directories";
-				if (checkValues(msg, config.getProjectPath(), config.getSourcePath(), config.getPackageName())) {
-					lastError = "Failure in directory structure creation";
-					createDirectoryStructure(opts.flagCreate(), config.getProjectPath(), config.getSourcePath(),
-							config.getPackagePath());
-				}
-
-				config.saveConfigurationFile(concat(config.getProjectPath(), config.getGrammarName()
-						+ Config.configFileSuffix));
-				msg = "Insufficient parameters to build project files: check the json config file.";
-				if (checkValues(msg, config.getProjectPath(), config.getSourcePath(), config.getPackageName(),
-						config.getAntlrJarPathName(), config.getJavaPath(), config.getGrammarName())) {
-
-					if (opts.flagCreate()) {
-						lastError = "Failure in processing tools creation";
-						createTools(config.getProjectPath(), config.getSourcePath(), config.getPackagePath(),
-								config.getAntlrJarPathName(), config.getJavaPath(), config.getGrammarName());
-						createUtils(config.getPackageName());
-
-						createSymbols(config.getPackageName());
-						createTypes(config.getPackageName());
-
-						lastError = "Failure in processing parser creation";
-						createParser(config.getPackageName(), config.getGrammarName());
-					}
-
-					File fParser = new File(concat(dstGen, config.getGrammarName() + "Parser.java"));
-					if (fParser.exists()) {
-
-						lastError = "Failure in parsing the base listener";
-						List<String> genNames = parseBaseListener(config.getGrammarName());
-
-						lastError = "Failure in parsing the parser";
-						Map<String, List<Method>> ctxs = parseParser(fParser);
-
-						if (opts.flagCreate()) {
-							lastError = "Failure in basic classes creation";
-							createBaseClasses(config.getPackageName(), config.getGrammarName());
-							createWalkerPhase(config.getPackageName(), config.getGrammarName(), genNames);
-							createGenerator(config.getPackageName(), config.getGrammarName());
-							createDescriptorBasis(config.getPackageName(), config.getGrammarName(), genNames, ctxs);
-						}
-
-						if (opts.flagCreate() || opts.flagDescriptors()) {
-							lastError = "Failure in descriptors classes creation";
-							createDescriptors(config.getPackageName(), config.getGrammarName(), genNames, ctxs);
-						}
-
-					} else {
-						Log.info(this, "Generate the Parser, etc. then re-run this tool");
-					}
-				}
-			}
-		} catch (Exception e) {
-			Log.error(this, lastError, e);
+		// create or load and update configuration
+		Config config = loadConfiguration(opts);
+		if (!config.isLoaded()) {
+			Log.error(this, "Configuration load failed");
 			return;
 		}
-	}
 
-	private boolean checkValues(String reason, String... values) {
-		for (String value : values) {
-			if (value == null || value.length() == 0) {
-				Log.warn(this, reason);
-				return false;
+		// prepare to execute the requested functions
+		Productions funcs = new Productions(opts, config);
+
+		if (funcs.validBuildConfiguration()) {
+			config.deriveDstPaths();
+		} else {
+			Log.error(this, "Insufficient command line arguments");
+		}
+
+		// create/validate directory structure
+		if (opts.flagCreate() || opts.flagDescriptors()) {
+			if (funcs.createDirectories()) {
+				Log.info(this, "Directory structure created/validated");
+			} else {
+				Log.error(this, "Failure in directory structure creation");
+				return;
 			}
 		}
-		return true;
-	}
 
-	// ///////////////////////////////////////////////////////////////////////////
+		// create basic files & utility programs
+		if (opts.flagCreate()) {
+			funcs.createStandardTools();
+			funcs.createDefaultParser();
 
-	private List<String> parseBaseListener(String grammarName) throws IOException {
-		List<String> genNames = new ArrayList<>();
-		String baseListener = config.readFile(concat(dstGen, grammarName + "ParserBaseListener.java"));
-		Matcher m = ruleName.matcher(baseListener);
-		while (m.find()) {
-			String genName = m.group(1);
-			if (!"EveryRule".equals(genName)) {
-				genNames.add(genName);
-			}
-		}
-		return genNames;
-	}
-
-	private Map<String, List<Method>> parseParser(File fParser) throws IOException {
-		Map<String, List<Method>> ctxs = new HashMap<>();
-		String parser = config.readFile(fParser.getPath());
-		Matcher m = ctxClass.matcher(parser);
-		while (m.find()) {
-			String ctx = m.group(1);
-			String ctxName = m.group(2);
-
-			Matcher o = ctxMthds.matcher(ctx);
-			List<Method> methods = new ArrayList<>();
-			while (o.find()) {
-				Method ms = new Method();
-				ms.retClass = o.group(1);
-				ms.retType = o.group(2);
-				ms.callName = o.group(3);
-				if (o.group(2) != null) {
-					ms.retClass += ms.retType;
-					ms.retType = ms.retType.substring(1, ms.retType.length() - 1);
+			try {
+				File f = new File("Run.bat");
+				if (f.isFile()) {
+					String proj = FilenameUtils.getName(config.getProjectPath());
+					String contents = config.readFile("Run.bat");
+					config.writeFile(Strings.concat(config.getProjectPath(), proj + "Run.bat"), contents);
 				}
-				if (!ms.retClass.equals("int")) {
-					// skip odd case that bleads through the regexp
-					methods.add(ms);
-				}
-			}
-			ctxs.put(ctxName, methods);
-		}
-		return ctxs;
-	}
-
-	// ///////////////////////////////////////////////////////////////////////////
-
-	public boolean createDirectoryStructure(boolean create, String projectPath, String sourcePath, String packagePath) {
-
-		dstBase = concat(projectPath, sourcePath, packagePath);
-		dstConverter = concat(dstBase, "converter");
-		dstDescriptors = concat(dstBase, "converter", "descriptors");
-		dstParser = concat(dstBase, "parser");
-		dstGen = concat(dstBase, "parser", "gen");
-		dstGenerator = concat(dstBase, "generator");
-		dstSymbol = concat(dstBase, "symbol");
-		dstTypes = concat(dstBase, "types");
-		dstUtil = concat(dstBase, "util");
-
-		if (create) {
-			return createDirs(dstBase)
-					&& createDirs(dstDescriptors)
-					&& createDirs(dstGen)
-					&& createDirs(dstGenerator)
-					&& createDirs(dstSymbol)
-					&& createDirs(dstTypes)
-					&& createDirs(dstUtil);
-		}
-		return true;
-	}
-
-	private String concat(String... args) {
-		String result = "";
-		for (String arg : args) {
-			result = FilenameUtils.concat(result, arg);
-		}
-		return result;
-	}
-
-	/*
-	 * Convert separators so the string is a valid URL appropriate for classpath discovery
-	 */
-	private String concatAsClassPath(String... args) {
-		return concat(args).replaceAll(WINDOWS_SEPARATOR, STD_SEPARATOR);
-	}
-
-	private boolean createDirs(String dir) {
-		File f = new File(dir);
-		if (!f.mkdirs()) {
-			if (f.exists()) {
-				Log.info(this, "Directory exists: " + dir);
-				return true;
-			}
-			Log.error(this, "Failed to make directory for " + dir);
-			return false;
-		}
-		return true;
-	}
-
-	// ///////////////////////////////////////////////////////////////////////////
-
-	public void createWalkerPhase(String packageName, String grammarName, List<String> genNames) throws IOException {
-		createFirstWalkerPhase(packageName, grammarName, "01");
-		createWalkerPhase(packageName, grammarName, "02", genNames);
-		createWalkerPhase(packageName, grammarName, "03", genNames);
-		createPhaseState(packageName);
-	}
-
-	private void createFirstWalkerPhase(String packageName, String grammarName, String phaseNumber) throws IOException {
-		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "PhaseClasses.stg"));
-
-		// use grammar name to define presumptive first rule name
-		String genName = grammarName.substring(0, 1).toUpperCase();
-		genName += grammarName.substring(1).toLowerCase();
-
-		ST st = group.getInstanceOf("FirstPhaseClass");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		st.add("genName", genName);
-		st.add("phaseNumber", phaseNumber);
-		String result = st.render();
-		config.writeFile(concat(dstConverter, grammarName + "Phase" + phaseNumber + ".java"), result);
-	}
-
-	private void createWalkerPhase(String packageName, String grammarName, String phaseNumber, List<String> genNames)
-			throws IOException {
-		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "PhaseClasses.stg"));
-		ST st = group.getInstanceOf("PhaseClassHeader");
-		st.add("packageName", packageName);
-		StringBuilder result = new StringBuilder();
-		result.append(st.render());
-
-		st = group.getInstanceOf("PhaseClassImport1");
-		st.add("packageName", packageName);
-		for (String genName : genNames) {
-			st.add("genName", genName);
-			result.append(st.render());
-			st.remove("genName");
-		}
-
-		st = group.getInstanceOf("PhaseClassImport2");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		for (String genName : genNames) {
-			st.add("genName", genName);
-			result.append(st.render());
-			st.remove("genName");
-		}
-
-		st = group.getInstanceOf("PhaseClassClass");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		st.add("phaseNumber", phaseNumber);
-		result.append(st.render());
-
-		st = group.getInstanceOf("PhaseClassConstructor");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		st.add("phaseNumber", phaseNumber);
-		result.append(st.render());
-
-		st = group.getInstanceOf("PhaseClassEnterMethod");
-		for (String genName : genNames) {
-			st.add("genName", genName);
-			result.append(st.render());
-			st.remove("genName");
-		}
-
-		st = group.getInstanceOf("PhaseClassExitMethod");
-		for (String genName : genNames) {
-			st.add("genName", genName);
-			result.append(st.render());
-			st.remove("genName");
-		}
-
-		st = group.getInstanceOf("PhaseClassTrailer");
-		result.append(st.render());
-
-		config.writeFile(concat(dstConverter, grammarName + "Phase" + phaseNumber + ".java"), result.toString());
-	}
-
-	private void createPhaseState(String packageName) throws IOException {
-		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "PhaseClasses.stg"));
-		ST st = group.getInstanceOf("PhaseStateClass");
-		st.add("packageName", packageName);
-		String result = st.render();
-		config.writeFile(concat(dstConverter, "PhaseState.java"), result);
-	}
-
-	public void createBaseClasses(String packageName, String grammarName) throws IOException {
-
-		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "BaseClasses.stg"));
-		ST st = group.getInstanceOf("ConverterClass");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		st.add("startRule", grammarName.toLowerCase());
-		String result = st.render();
-		config.writeFile(concat(dstConverter, "Converter.java"), result);
-
-		st = group.getInstanceOf("PhaseBaseClass");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		result = st.render();
-		config.writeFile(concat(dstConverter, grammarName + "PhaseBase.java"), result);
-	}
-
-	public void createParser(String packageName, String grammarName) throws IOException {
-		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "Parser.stg"));
-		ST st = group.getInstanceOf("ParserGrammar");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		st.add("startRule", grammarName.toLowerCase());
-		String result = st.render();
-		config.writeFile(concat(dstParser, grammarName + "Parser.g4"), result);
-
-		st = group.getInstanceOf("LexerGrammar");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		result = st.render();
-		config.writeFile(concat(dstParser, grammarName + "Lexer.g4"), result);
-
-		st = group.getInstanceOf("LexerAdapterClass");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		result = st.render();
-		config.writeFile(concat(dstParser, "LexerAdaptor.java"), result);
-
-		st = group.getInstanceOf("LexerHelperClass");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		result = st.render();
-		config.writeFile(concat(dstParser, "LexerHelper.java"), result);
-
-		st = group.getInstanceOf("ErrorListenerClass");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		result = st.render();
-		config.writeFile(concat(dstParser, grammarName + "ErrorListener.java"), result);
-
-		st = group.getInstanceOf("LexerErrorStrategyClass");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		result = st.render();
-		config.writeFile(concat(dstParser, grammarName + "LexerErrorStrategy.java"), result);
-
-		st = group.getInstanceOf("ParserErrorStrategyClass");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		result = st.render();
-		config.writeFile(concat(dstParser, grammarName + "ParserErrorStrategy.java"), result);
-
-		st = group.getInstanceOf("TokenClass");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		result = st.render();
-		config.writeFile(concat(dstParser, grammarName + "Token.java"), result);
-
-		st = group.getInstanceOf("TokenFactoryClass");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		result = st.render();
-		config.writeFile(concat(dstParser, grammarName + "TokenFactory.java"), result);
-
-	}
-
-	public void createGenerator(String packageName, String grammarName) throws IOException {
-		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "FileGen.stg"));
-
-		ST st = group.getInstanceOf("OutputFileGen");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		String result = st.render();
-		config.writeFile(concat(dstGenerator, grammarName + "FileGen.java"), result);
-
-		st = group.getInstanceOf("IOProcessorClass");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		result = st.render();
-		config.writeFile(concat(dstGenerator, "IOProcessor.java"), result);
-	}
-
-	public void createDescriptorBasis(String packageName, String grammarName, List<String> descriptorNames,
-			Map<String, List<Method>> ctxs)
-			throws IOException {
-		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "DescriptorClasses.stg"));
-		ST st = group.getInstanceOf("IDescriptorClass");
-		st.add("packageName", packageName);
-		String result = st.render();
-		config.writeFile(concat(dstConverter, "IDescriptor.java"), result);
-
-		st = group.getInstanceOf("BaseDescriptorClass");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		result = st.render();
-		config.writeFile(concat(dstConverter, "BaseDescriptor.java"), result);
-
-		st = group.getInstanceOf("ValueClass");
-		st.add("packageName", packageName);
-		result = st.render();
-		config.writeFile(concat(dstConverter, "Value.java"), result);
-	}
-
-	public void createDescriptors(String packageName, String grammarName, List<String> descriptorNames,
-			Map<String, List<Method>> ctxs)
-			throws IOException {
-		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "DescriptorClasses.stg"));
-		ST st = group.getInstanceOf("DescriptorClass");
-		st.add("packageName", packageName);
-		st.add("grammarName", grammarName);
-		for (String genName : descriptorNames) {
-			List<Method> mthSet = ctxs.get(genName + "Context");
-			updateMethodNames(mthSet);
-			List<String> impNames = filterImports(mthSet);
-
-			st.add("genName", genName);
-			st.add("methods", mthSet);
-			st.add("imports", impNames);
-			String result = st.render();
-			config.writeFile(concat(dstDescriptors, genName + "Descriptor.java"), result);
-			st.remove("genName");
-			st.remove("methods");
-			st.remove("imports");
-		}
-	}
-
-	private void updateMethodNames(List<Method> mthSet) {
-		for (Method m : mthSet) {
-			m.presName = Strings.tokenCase(m.callName);
-		}
-	}
-
-	private List<String> filterImports(List<Method> mthSet) {
-		ArrayList<String> impNames = new ArrayList<>();
-		for (Method m : mthSet) {
-			if (!(m.retClass.equals("TerminalNode") || (m.retType != null && m.retType.equals("TerminalNode")))) {
-				if (m.retType != null) {
-					impNames.add(m.retType);
-				} else {
-					impNames.add(m.retClass);
-				}
+			} catch (IOException e) {
+				Log.error(this, "Failed to create the project build bat file");
 			}
 		}
-		return impNames;
+
+		if (funcs.generatedParserExists()) {
+			if (opts.flagCreate()) {
+				funcs.createStandardParserTools();
+				funcs.createBaseDescriptor();
+			}
+
+			if (opts.flagCreate() || opts.flagDescriptors()) {
+				funcs.createDescriptors();
+			}
+
+		} else {
+			Log.info(this, "A generated parser is required to proceed... ");
+		}
 	}
 
-	public void createTools(String projectPath, String sourcePath, String packagePath, String antlrJarPath,
-			String javaPath, String grammarName) throws IOException {
-		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "Tools.stg"));
-		ST st = group.getInstanceOf("ToolBatchFile");
-		st.add("projectPath", projectPath);
-		st.add("sourcePath", sourcePath);
-		st.add("packagePath", packagePath);
-		st.add("antlrJarPath", antlrJarPath);
-		st.add("javaPath", javaPath);
-		st.add("grammarName", grammarName);
-		String result = st.render();
-		config.writeFile(concat(dstParser, grammarName + "Tool.bat"), result);
+	private CliOptions processCliOpts(String[] args) {
+		CliOptions opts = new CliOptions();
+		String cwd;
+		try {
+			cwd = new File(".").getCanonicalPath();
+		} catch (IOException e) {
+			Log.error(this, "Failure to determine Cwd", e);
+			return opts;
+		}
+
+		Log.info(this, "Cwd is " + cwd);
+		boolean parsed = opts.processOptions(args);
+
+		if (!parsed || opts.flagHelp() || opts.warnUnrecognized()) {
+			opts.printUsage();
+			return opts;
+		} else if (opts.flagHint()) {
+			opts.printHints();
+			return opts;
+		}
+		opts.setValid(true);
+		return opts;
 	}
 
-	public void createSymbols(String packageName) throws IOException {
-		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "Symbol.stg"));
-		ST st = group.getInstanceOf("SymbolClass");
-		st.add("packageName", packageName);
-		String result = st.render();
-		config.writeFile(concat(dstSymbol, "Symbol.java"), result);
+	private Config loadConfiguration(CliOptions opts) {
 
-		st = group.getInstanceOf("ScopeClass");
-		st.add("packageName", packageName);
-		result = st.render();
-		config.writeFile(concat(dstSymbol, "Scope.java"), result);
-
-		st = group.getInstanceOf("SymbolTableClass");
-		st.add("packageName", packageName);
-		result = st.render();
-		config.writeFile(concat(dstSymbol, "SymbolTable.java"), result);
-	}
-
-	public void createTypes(String packageName) throws IOException {
-		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "Types.stg"));
-		ST st = group.getInstanceOf("ValueTypeClass");
-		st.add("packageName", packageName);
-		String result = st.render();
-		config.writeFile(concat(dstTypes, "ValueType.java"), result);
-
-		st = group.getInstanceOf("StyleTypeClass");
-		st.add("packageName", packageName);
-		result = st.render();
-		config.writeFile(concat(dstTypes, "StyleType.java"), result);
-
-		st = group.getInstanceOf("ContentClass");
-		st.add("packageName", packageName);
-		result = st.render();
-		config.writeFile(concat(dstTypes, "Content.java"), result);
-
-		st = group.getInstanceOf("ScopeTypeClass");
-		st.add("packageName", packageName);
-		result = st.render();
-		config.writeFile(concat(dstTypes, "ScopeType.java"), result);
-
-		st = group.getInstanceOf("StmtTypeClass");
-		st.add("packageName", packageName);
-		result = st.render();
-		config.writeFile(concat(dstTypes, "StmtType.java"), result);
-
-		st = group.getInstanceOf("OpClass");
-		st.add("packageName", packageName);
-		result = st.render();
-		config.writeFile(concat(dstTypes, "Op.java"), result);
-
-	}
-
-	public void createUtils(String packageName) throws IOException {
-		STGroup group = new STGroupFile(concatAsClassPath(templateDir, "Utils.stg"));
-		ST st = group.getInstanceOf("LogClass");
-		st.add("packageName", packageName);
-		String result = st.render();
-		config.writeFile(concat(dstUtil, "Log.java"), result);
-
-		st = group.getInstanceOf("ReflectClass");
-		st.add("packageName", packageName);
-		result = st.render();
-		config.writeFile(concat(dstUtil, "Reflect.java"), result);
-
-		st = group.getInstanceOf("StringsClass");
-		st.add("packageName", packageName);
-		result = st.render();
-		config.writeFile(concat(dstUtil, "Strings.java"), result);
+		Config config = new Config();
+		if (opts.isVaid()) {
+			try {
+				config.loadPriorSettings(opts);
+				config.updateConfigFromArgs();
+				config.deriveDstPaths();
+				config.saveConfiguration();
+			} catch (IOException e1) {
+				Log.error(this, "Config settings problem", e1);
+				config.setLoaded(false);
+			}
+		}
+		return config;
 	}
 }

@@ -1,6 +1,8 @@
 delimiters "%", "%"
+import "Header.stg"
 
 FirstPhaseClass(packageName, grammarName, genName, phaseNumber) ::= <<
+%stdHdr()%
 package %packageName%.converter;
 
 import java.util.ArrayList;
@@ -87,6 +89,7 @@ public class %grammarName%Phase%phaseNumber% extends %grammarName%PhaseBase {
 >>
 
 PhaseClassHeader(packageName) ::= <<
+%stdHdr()%
 package %packageName%.converter;
 
 
@@ -188,6 +191,7 @@ PhaseClassTrailer() ::= <<
 >>
 
 PhaseStateClass(packageName) ::= <<
+%stdHdr()%
 package %packageName%.converter;
 
 import java.util.ArrayList;

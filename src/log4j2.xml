@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" name="StdCertivConfig" packages="net.certiv">
+	<Properties>
+		<Property name="logName">./GenProject.log</Property>
+	</Properties>
+
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d %-5p [%t] %20.30F:%-4L - %m%n"/>
+		</Console>
+
+		<File name="Logfile" fileName="${logName}" append="false">
+			<PatternLayout pattern="%d %-5p [%t] %20.30F:%-4L - %m%n"/>
+		</File>
+
+	</Appenders>
+
+	<Loggers>
+		<Logger name="net.certiv.antlr" level="DEBUG">
+			<AppenderRef ref="Logfile"/>
+		</Logger>
+
+		<Root level="info">
+			<AppenderRef ref="Console"/>
+		</Root>
+	</Loggers>
+</Configuration>

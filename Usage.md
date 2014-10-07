@@ -58,11 +58,11 @@ the descriptor java files.
 existing files. Use with caution.
 7. Orphaned descriptor files have to be removed manually.
 
-### Dependencies (for the Wizard and for file generation)
-Antlr4 [ANTLR 4.4 Complete]
-Apache [Logging Services](http://logging.apache.org/log4j/1.2/)
+### Dependencies 
+Antlr4 [ANTLR 4.4 Complete](http://www.antlr.org/download.html)
+Apache [Log4j 2 Core and API](http://logging.apache.org/log4j/2.x/) 
 
-### Dependencies (just for the Wizard)
+### Dependencies (specific to the Wizard)
 Apache [Commons CLI](http://commons.apache.org/proper/commons-cli/)
 Apache [Commons IO](http://commons.apache.org/proper/commons-io/)
 Google [Gson](https://code.google.com/p/google-gson/)

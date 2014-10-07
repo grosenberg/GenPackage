@@ -26,4 +26,7 @@ set /A REMAINDER=%DURATION% %% 100
 echo %SECS%.%REMAINDER% s
 
 ENDLOCAL
+
+timeout 4
+
 >>

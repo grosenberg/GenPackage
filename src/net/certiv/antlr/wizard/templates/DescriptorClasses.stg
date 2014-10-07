@@ -1,6 +1,8 @@
 delimiters "%", "%"
+import "Header.stg"
 
 IDescriptorClass(packageName) ::= <<
+%stdHdr()%
 package %packageName%.converter;
 
 public interface IDescriptor {
@@ -16,6 +18,7 @@ public interface IDescriptor {
 >>
 
 BaseDescriptorClass(packageName, grammarName) ::= <<
+%stdHdr()%
 package %packageName%.converter;
 
 import java.util.ArrayList;
@@ -200,6 +203,7 @@ public abstract class BaseDescriptor implements IDescriptor {
 >>
 
 DescriptorClass(packageName, grammarName, genName, methods, imports) ::= <<
+%stdHdr()%
 package %packageName%.converter.descriptors;
 
 import java.util.List;
@@ -250,6 +254,7 @@ AccessMethod(method) ::= <<
 >>
 
 ValueClass(packageName) ::= <<
+%stdHdr()%
 package %packageName%.converter;
 
 import java.util.regex.Matcher;

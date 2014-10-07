@@ -1,4 +1,5 @@
 delimiters "%", "%"
+import "Header.stg"
 
 ParserGrammar(packageName, grammarName, startRule) ::= <<
 parser grammar %grammarName%Parser;
@@ -146,8 +147,8 @@ fragment ESC		// Any escaped character
 	;
 
 fragment LITERAL
-    :  '"' ( ESCAPE_SEQ | ~('\\\\'|'"') )* '"'
-    |  '\'' ( ESCAPE_SEQ | ~('\''|'\\\\'') ) '\''
+    :  '"'  ( ESC_SEQ | ~["\\\\] )* '"'
+	|  '\\'' ( ESC_SEQ | ~['\\\\] )* '\\''
     ;
 
 
@@ -211,11 +212,12 @@ fragment ML_COMMENT		: '/*' .*? '*/'
 fragment HWS			:  [ \t\r] ;
 fragment VWS			:  [\n\u000C] ;
 
-fragment ESCAPE_SEQ		:   '\\' ('b'|'t'|'n'|'f'|'r'|'\"'|'\''|'\\\\') ;
+fragment ESC_SEQ		:   '\\\\' ('b'|'t'|'n'|'f'|'r') ;
 
 >>
 
 LexerAdapterClass(packageName, grammarName) ::= <<
+%stdHdr()%
 package %packageName%.parser;
 
 import org.antlr.v4.runtime.CharStream;
@@ -266,6 +268,7 @@ public abstract class LexerAdaptor extends Lexer {
 >>
 
 LexerHelperClass(packageName, grammarName) ::= <<
+%stdHdr()%
 package %packageName%.parser;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -364,6 +367,7 @@ public class LexerHelper {
 >>
 
 ErrorListenerClass(packageName, grammarName) ::= <<
+%stdHdr()%
 package %packageName%.parser;
 
 import java.util.Collections;
@@ -416,6 +420,7 @@ public class %grammarName%ErrorListener extends BaseErrorListener {
 >>
 
 LexerErrorStrategyClass(packageName, grammarName) ::= <<
+%stdHdr()%
 package %packageName%.parser;
 
 import %packageName%.parser.gen.%grammarName%Lexer;
@@ -452,6 +457,7 @@ public class %grammarName%LexerErrorStrategy extends %grammarName%Lexer {
 >>
 
 ParserErrorStrategyClass(packageName, grammarName) ::= <<
+%stdHdr()%
 package %packageName%.parser;
 
 /***
@@ -493,6 +499,7 @@ public class %grammarName%ParserErrorStrategy extends DefaultErrorStrategy {
 >>
 
 TokenClass(packageName, grammarName) ::= <<
+%stdHdr()%
 package %packageName%.parser;
 
 import %packageName%.parser.gen.%grammarName%Lexer;
@@ -569,6 +576,7 @@ public class %grammarName%Token extends CommonToken {
 >>
 
 TokenFactoryClass(packageName, grammarName) ::= <<
+%stdHdr()%
 package %packageName%.parser;
 
 import %packageName%.parser.gen.%grammarName%Lexer;

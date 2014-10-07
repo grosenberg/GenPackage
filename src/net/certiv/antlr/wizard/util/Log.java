@@ -10,44 +10,44 @@
  *
  * Versions:
  * 		1.0 - 2014.03.26: First release level code
+ * 		1.1 - 2014.07.25: Updated to use Log4j2
  *******************************************************************************/
 package net.certiv.antlr.wizard.util;
 
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.message.Message;
+import org.apache.logging.log4j.message.MessageFactory;
+import org.apache.logging.log4j.spi.ExtendedLogger;
+import org.apache.logging.log4j.spi.ExtendedLoggerWrapper;
+import org.apache.logging.log4j.spi.LoggerContext;
 
-public class Log {
+public class Log extends ExtendedLoggerWrapper {
 
-	// private static Logger logger = Logger.getLogger(Log.class);
+	private static final long serialVersionUID = 1L;
+
+	private static Logger logger;
+	private static final String FQCN = Log.class.getName();
+
 	private static HashMap<Integer, LogLevel> logLevels = new HashMap<>();
 	private static Integer LogId = Integer.valueOf(Log.class.hashCode());
+
+	// set the global default log value
 	static {
-		setLevel(LogId, LogLevel.Warn); // sets the global default log value
+		setLevel(LogId, LogLevel.Warn);
 	}
 
-	public static enum LogLevel {
-		Fatal(0),
-		Error(1),
-		Warn(2),
-		Info(3),
-		Debug(4),
-		Trace(5);
+	public Log(ExtendedLogger logger, String name, MessageFactory messageFactory) {
+		super(logger, name, messageFactory);
+	}
 
-		private int value;
-
-		LogLevel(int value) {
-			this.value = value;
-		}
-
-		public int value() {
-			return value;
-		}
-
-		public boolean check(Object source) {
-			if (source == null) return false;
-			return this.value <= logLevelOf(source).value;
-		}
+	@Override
+	public void logMessage(String fqcn, Level level, Marker marker, Message message, Throwable t) {
+		super.logMessage(FQCN, level, marker, message, t);
 	}
 
 	/**
@@ -78,14 +78,14 @@ public class Log {
 		String name = objNameOf(source);
 
 		logLevels.put(id, level);
-		debug(Log.class, "Logging value set [class=" + name + ", level=" + level.toString() + "]");
+		trace(Log.class, "Logging value set [class=" + name + ", level=" + level.toString() + "]");
 	}
 
 	private static LogLevel logLevelOf(Object source) {
 		if (source == null) return defaultLogLevel();
 		LogLevel level = logLevels.get(source.hashCode());
 		if (level == null) {
-			debug(Log.class, "Log level has not been set for " + objNameOf(source));
+			trace(Log.class, "Log level has not been set for " + objNameOf(source));
 			setLevel(source, defaultLogLevel());
 			return defaultLogLevel();
 		}
@@ -162,7 +162,7 @@ public class Log {
 	private static void log(Object source, LogLevel srcLevel, String message, Throwable e) {
 		if (loggable(source, srcLevel)) {
 			if (source == null) source = Log.class;
-			Logger logger = Logger.getLogger(source.getClass());
+			logger = PrivateManager.getLogger(source.getClass().getName());
 			switch (srcLevel) {
 				case Trace:
 					logger.trace(message, e);
@@ -183,6 +183,41 @@ public class Log {
 					logger.fatal(message, e);
 					break;
 			}
+		}
+	}
+
+	public static enum LogLevel {
+		Fatal(0),
+		Error(1),
+		Warn(2),
+		Info(3),
+		Debug(4),
+		Trace(5);
+
+		private int value;
+
+		LogLevel(int value) {
+			this.value = value;
+		}
+
+		public int value() {
+			return value;
+		}
+
+		public boolean check(Object source) {
+			if (source == null) return false;
+			return this.value <= logLevelOf(source).value;
+		}
+	}
+
+	private static class PrivateManager extends LogManager {
+
+		public static LoggerContext getContext() {
+			return getContext(FQCN, false);
+		}
+
+		public static ExtendedLogger getLogger(final String name) {
+			return new Log(getContext().getLogger(name), "", null);
 		}
 	}
 }

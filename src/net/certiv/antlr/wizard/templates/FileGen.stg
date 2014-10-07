@@ -1,6 +1,8 @@
 delimiters "%", "%"
+import "Header.stg"
 
 OutputFileGen(packageName, grammarName) ::= <<
+%stdHdr()%
 package %packageName%.generator;
 
 public class %grammarName%FileGen {
@@ -13,6 +15,7 @@ public class %grammarName%FileGen {
 >>
 
 IOProcessorClass(packageName, grammarName) ::= <<
+%stdHdr()%
 package %packageName%.generator;
 
 import java.io.File;

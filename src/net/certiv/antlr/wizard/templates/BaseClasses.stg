@@ -1,6 +1,8 @@
 delimiters "%", "%"
+import "Header.stg"
 
 ConverterClass(packageName, grammarName, startRule) ::= <<
+%stdHdr()%
 package %packageName%.converter;
 
 import java.io.ByteArrayInputStream;
@@ -88,6 +90,7 @@ public class Converter {
 >>
 
 PhaseBaseClass(packageName, grammarName) ::= <<
+%stdHdr()%
 package %packageName%.converter;
 
 import java.util.List;

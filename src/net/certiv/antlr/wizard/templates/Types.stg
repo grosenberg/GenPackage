@@ -1,6 +1,8 @@
 delimiters "%", "%"
+import "Header.stg"
 
 ValueTypeClass(packageName) ::= <<
+%stdHdr()%
 package %packageName%.types;
 
 /** The type of the asString contained by a descriptor */
@@ -59,6 +61,7 @@ public enum ValueType {
 >>
 
 StyleTypeClass(packageName) ::= <<
+%stdHdr()%
 package %packageName%.types;
 
 public enum StyleType {
@@ -75,6 +78,7 @@ public enum StyleType {
 >>
 
 ContentClass(packageName) ::= <<
+%stdHdr()%
 package %packageName%.types;
 
 public enum Content {
@@ -85,6 +89,7 @@ public enum Content {
 >>
 
 ScopeTypeClass(packageName) ::= <<
+%stdHdr()%
 package %packageName%.types;
 
 public enum ScopeType {
@@ -95,6 +100,7 @@ public enum ScopeType {
 >>
 
 StmtTypeClass(packageName) ::= <<
+%stdHdr()%
 package %packageName%.types;
 
 public enum StmtType {
@@ -107,6 +113,7 @@ public enum StmtType {
 >>
 
 OpClass(packageName) ::= <<
+%stdHdr()%
 package %packageName%.types;
 
 import java.util.HashMap;
