@@ -1,0 +1,96 @@
+delimiters "~", "~"
+
+log4J2File(grammarName) ::= <<
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" name="~grammarName~Config">
+	<Properties>
+		<Property name="logName">./~grammarName~.log</Property>
+		<Property name="logPattern">%d %-5p [%t] %20.30F:%-4L - %m%n</Property>
+	</Properties>
+
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="${logPattern\}"/>			
+		</Console>
+
+		<File name="~grammarName~LogFile" fileName="${logName\}" immediateFlush="false" append="false">
+			<PatternLayout pattern="${logPattern\}"/>			
+		</File>
+
+	</Appenders>
+
+	<Loggers>
+		<Root level="TRACE">
+			<AppenderRef ref="Console" level="DEBUG" />
+			<AppenderRef ref="~grammarName~LogFile" level="DEBUG" />
+		</Root>
+	</Loggers>
+</Configuration>
+
+>>
+
+log4j2Test(grammarName) ::= <<
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" name="~grammarName~TestConfig">
+	<Properties>
+		<Property name="logName">./~grammarName~Test.log</Property>
+		<Property name="logPattern">%d %-5p [%t] %20.30F:%-4L - %m%n</Property>
+	</Properties>
+
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="${logPattern\}"/>			
+		</Console>
+
+		<File name="~grammarName~TestLogfile" fileName="${logName\}" immediateFlush="false" append="false">
+			<PatternLayout pattern="${logPattern\}"/>			
+		</File>
+
+	</Appenders>
+
+	<Loggers>
+		<Root level="TRACE">
+			<AppenderRef ref="Console" level="DEBUG"/>
+			<AppenderRef ref="~grammarName~TestLogfile" level="DEBUG"/>
+		</Root>
+	</Loggers>
+</Configuration>
+
+>>
+
+Classpath() ::= <<
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="lib/antlr-4.4-complete.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-api-2.0.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-core-2.0.jar"/>
+	<classpathentry kind="lib" path="lib/commons-io-2.4.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
+
+>>
+
+Project(projectName) ::= <<
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>~projectName~</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+</projectDescription>
+
+>>

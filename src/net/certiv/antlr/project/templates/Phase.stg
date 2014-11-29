@@ -1,0 +1,549 @@
+delimiters "%", "%"
+import "D:\DevFiles\Java\WorkSpaces\Main\GenProject\src\net\certiv\antlr\project\libs\Header.stg"
+import "D:\DevFiles\Java\WorkSpaces\Main\GenProject\src\net\certiv\antlr\project\libs\Elements.stg"
+
+Phase01ClassCopyright() ::= <<
+ * Copyright (c) 2008-2014 G Rosenberg.
+ * 
+>>
+
+Phase01ClassContributor() ::= <<
+ *		G Rosenberg - initial API and implementation
+ * 
+>>
+
+Phase01ClassVersion() ::= <<
+ * 		1.0 - 2014.03.26: First release level code
+ * 		1.1 - 2014.08.26: Updates, add Tests support
+ * 
+>>
+
+Phase01Class(packageName, grammarName) ::= <<
+%hdrBeg()%
+%Phase01ClassCopyright()%
+%epl()%
+%hdrBlankLn()%
+%hdrContribPrefix()%
+%Phase01ClassContributor()%
+%hdrBlankLn()%
+%hdrVersionPrefix()%
+%Phase01ClassVersion()%
+%hdrBlankLn()%
+%hdrEnd()%
+package %packageName%.converter;
+
+import java.util.ArrayList;
+
+import %packageName%.converter.descriptors.%grammarName%Descriptor;
+import %packageName%.generator.IOProcessor;
+import %packageName%.parser.gen.%grammarName%Parser.%grammarName%Context;
+import %packageName%.util.Log;
+import %packageName%.util.Reflect;
+
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTreeProperty;
+
+public class %grammarName%Phase01 extends %grammarName%PhaseBase {
+
+	public static final int phase = 01;
+	public boolean collectComments;
+
+	/**
+	 * Phase Plan: <br>
+	 * -- create typed descriptor objects for context instances <br>
+	 * -- if enabled, examine and collect comments from hidden-channel <br>
+	 * -- initialize descriptors <br>
+	 * -- where the descriptor is contextually complete, mark the descriptor 'resolved' <br>
+	 * 
+	 * @param processor
+	 */
+	public %grammarName%Phase01(PhaseState state, IOProcessor processor) {
+		super(state, processor);
+		this.state.nodeContextMap = new ParseTreeProperty<BaseDescriptor>();
+		this.state.commentMarkers = new ArrayList<Integer>();
+		Log.info(this, "Phase " + phase + ": Starting...");
+	\}
+
+	@Override
+	public void exit%grammarName%(%grammarName%Context ctx) {
+		super.exit%grammarName%(ctx);
+		%grammarName%Descriptor descriptor = (%grammarName%Descriptor) getDescriptor(ctx);
+		Log.info(this, "Phase " + phase + ": completed (resolved: " + descriptor.resolved + ")");
+	\}
+
+	public void collectComments(boolean collect) {
+		this.collectComments = collect;
+	\}
+
+	@Override
+	public void enterEveryRule(ParserRuleContext ctx) {
+		super.enterEveryRule(ctx);
+
+		String className = ctx.getClass().getName();
+		int pathIdx = className.indexOf("parser.gen");
+		className = className.substring(0, pathIdx) + "converter.descriptors.";
+		int nameIdx = ctx.getClass().getSimpleName().lastIndexOf("Context");
+		className = className + ctx.getClass().getSimpleName().substring(0, nameIdx) + "Descriptor";
+		Object[] args = { ctx \};
+		BaseDescriptor descriptor;
+		try {
+			descriptor = (BaseDescriptor) Reflect.make(Class.forName(className), args);
+		\} catch (ClassNotFoundException e) {
+			Log.error(this, "Failed to make " + className, e);
+			return;
+		\}
+		descriptor.setPhaseState(state);
+		setDescriptor(ctx, descriptor);
+
+		if (collectComments) {
+			descriptor.collectComments = collectComments;
+			descriptor.commentLeft = commentLeft(ctx);
+			descriptor.commentRight = commentRight(ctx);
+		\}
+
+		Log.info(this, "Phase " + phase + ": Created " + className);
+	\}
+
+	@Override
+	public void exitEveryRule(ParserRuleContext ctx) {
+		super.exitEveryRule(ctx);
+		BaseDescriptor descriptor = getDescriptor(ctx);
+		descriptor.initialize();
+
+		Log.info(this, "Phase " + phase + ": Initialized (resolved: " + descriptor.resolved + ")");
+	\}
+\}
+
+
+>>
+
+Phase02ClassCopyright() ::= <<
+ * Copyright (c) 2008-2014 G Rosenberg.
+ * 
+>>
+
+Phase02ClassContributor() ::= <<
+ *		G Rosenberg - initial API and implementation
+ * 
+>>
+
+Phase02ClassVersion() ::= <<
+ * 		1.0 - 2014.03.26: First release level code
+ * 		1.1 - 2014.08.26: Updates, add Tests support
+ * 
+>>
+
+Phase02Class(packageName) ::= <<
+%hdrBeg()%
+%Phase02ClassCopyright()%
+%epl()%
+%hdrBlankLn()%
+%hdrContribPrefix()%
+%Phase02ClassContributor()%
+%hdrBlankLn()%
+%hdrVersionPrefix()%
+%Phase02ClassVersion()%
+%hdrBlankLn()%
+%hdrEnd()%
+package %packageName%.converter;
+
+import %packageName%.generator.IOProcessor;
+import %packageName%.types.ScopeType;
+import %packageName%.util.Log;
+import %packageName%.util.Reflect;
+
+
+>>
+
+Phase02ImportsLiteral(packageName, grammarName, contextList) ::= <<
+// generated imports
+%Phase02Imports(packageName, grammarName, contextList)%
+>>
+
+Phase02Body(grammarName) ::= <<
+public class %grammarName%Phase02 extends %grammarName%PhaseBase {
+
+	public static final int phase = 02;
+	public static boolean statusResolved = true;
+
+	private int startingGen;
+
+	/**
+	 * Phase Plan: <br>
+	 * -- build a symbol (substitution) table for expressions <br>
+	 * -- symbols are scoped local to each body <br>
+	 * -- process the descriptors to resolve dynamic values <br>
+	 * -- unresolved nodes are reported as errors.<br>
+	 * 
+	 * @param processor
+	 */
+	public %grammarName%Phase02(%grammarName%PhaseBase prior, IOProcessor processor) {
+		super(prior.state, processor);
+		this.startingGen = prior.state.symTable.getCurrentGen();
+	\}
+
+	public boolean balanceCheck() {
+		if (state.symTable.currentScope().genId != startingGen) {
+			Log.warn(this, "Unbalanced scopes! Start: " + startingGen + ", Ended: " + state.symTable.getCurrentGen());
+			if (startingGen == 0) {
+				if (state.symTable.currentScope().type != ScopeType.GLOBAL) {
+					Log.warn(this, "Did not end at GLOBAL.");
+				\}
+			\}
+			return false;
+		\}
+		return true;
+	\}
+
+	
+>>
+
+Phase02MethodsLiteral(contextList) ::= <<
+// generated methods
+	%Phase02Methods(contextList)%
+>>
+
+Phase02MethodSet(contextName) ::= <<
+@Override
+	public void enter%contextName%(%contextName%Context ctx) {
+		super.enter%contextName%(ctx);
+		state.symTable.pushScope();
+		Log.debug(this, "Phase " + phase + ": New local scope");
+		%contextName%Descriptor descriptor = (%contextName%Descriptor) getDescriptor(ctx);
+		descriptor.initialize();
+		descriptor.process();
+	\}
+
+	@Override
+	public void exit%contextName%(%contextName%Context ctx) {
+		super.exit%contextName%(ctx);
+		%contextName%Descriptor descriptor = (%contextName%Descriptor) getDescriptor(ctx);
+		descriptor.process();
+		state.symTable.popScope();
+
+		String name = Reflect.simpleClassName(descriptor);
+		Log.debug(this, "Phase " + phase + ": " + name + " processed (resolved: " + descriptor.resolved + ")");
+	\}
+
+	
+>>
+
+Phase02End() ::= <<
+}
+
+
+>>
+
+Phase03ClassCopyright() ::= <<
+ * Copyright (c) 2008-2014 G Rosenberg.
+ * 
+>>
+
+Phase03ClassContributor() ::= <<
+ *		G Rosenberg - initial API and implementation
+ * 
+>>
+
+Phase03ClassVersion() ::= <<
+ * 		1.0 - 2014.03.26: First release level code
+ * 		1.1 - 2014.08.26: Updates, add Tests support
+ * 
+>>
+
+Phase03Class(packageName) ::= <<
+%hdrBeg()%
+%Phase03ClassCopyright()%
+%epl()%
+%hdrBlankLn()%
+%hdrContribPrefix()%
+%Phase03ClassContributor()%
+%hdrBlankLn()%
+%hdrVersionPrefix()%
+%Phase03ClassVersion()%
+%hdrBlankLn()%
+%hdrEnd()%
+package %packageName%.converter;
+
+import %packageName%.generator.IOProcessor;
+import %packageName%.types.ScopeType;
+import %packageName%.util.Log;
+import %packageName%.util.Reflect;
+
+
+>>
+
+Phase03ImportsLiteral(packageName, grammarName, contextList) ::= <<
+// generated imports
+%Phase03Imports(packageName, grammarName, contextList)%
+>>
+
+Phase03Body(grammarName) ::= <<
+public class %grammarName%Phase03 extends %grammarName%PhaseBase {
+
+	public static final int phase = 03;
+	public static boolean statusResolved = true;
+
+	private int startingGen;
+
+	/**
+	 * Phase Plan: <br>
+	 * -- build a symbol (substitution) table for expressions <br>
+	 * -- symbols are scoped local to each body <br>
+	 * -- process the descriptors to resolve dynamic values <br>
+	 * -- unresolved nodes are reported as errors.<br>
+	 * 
+	 * @param processor
+	 */
+	public %grammarName%Phase03(%grammarName%PhaseBase prior, IOProcessor processor) {
+		super(prior.state, processor);
+		this.startingGen = prior.state.symTable.getCurrentGen();
+	\}
+
+	public boolean balanceCheck() {
+		if (state.symTable.currentScope().genId != startingGen) {
+			Log.warn(this, "Unbalanced scopes! Start: " + startingGen + ", Ended: " + state.symTable.getCurrentGen());
+			if (startingGen == 0) {
+				if (state.symTable.currentScope().type != ScopeType.GLOBAL) {
+					Log.warn(this, "Did not end at GLOBAL.");
+				\}
+			\}
+			return false;
+		\}
+		return true;
+	\}
+
+	
+>>
+
+Phase03MethodsLiteral(contextList) ::= <<
+// generated methods
+	%Phase03Methods(contextList)%
+>>
+
+Phase03MethodSet(contextName) ::= <<
+@Override
+	public void enter%contextName%(%contextName%Context ctx) {
+		super.enter%contextName%(ctx);
+		state.symTable.pushScope();
+		Log.debug(this, "Phase " + phase + ": New local scope");
+		%contextName%Descriptor descriptor = (%contextName%Descriptor) getDescriptor(ctx);
+		descriptor.process();
+	\}
+
+	@Override
+	public void exit%contextName%(%contextName%Context ctx) {
+		super.exit%contextName%(ctx);
+		%contextName%Descriptor descriptor = (%contextName%Descriptor) getDescriptor(ctx);
+		descriptor.process();
+		state.symTable.popScope();
+	
+		String name = Reflect.simpleClassName(descriptor);
+		Log.debug(this, "Phase " + phase + ": " + name + " processed (resolved: " + descriptor.resolved + ")");
+	\}
+
+	
+>>
+
+Phase03End() ::= <<
+}
+
+
+>>
+
+PhaseBaseClassCopyright() ::= <<
+ * Copyright (c) 2008-2014 G Rosenberg.
+ * 
+>>
+
+PhaseBaseClassContributor() ::= <<
+ *		G Rosenberg - initial API and implementation
+ * 
+>>
+
+PhaseBaseClassVersion() ::= <<
+ * 		1.0 - 2014.03.26: First release level code
+ * 		1.1 - 2014.08.26: Updates, add Tests support
+ * 
+>>
+
+PhaseBaseClass(packageName, grammarName) ::= <<
+%hdrBeg()%
+%PhaseBaseClassCopyright()%
+%epl()%
+%hdrBlankLn()%
+%hdrContribPrefix()%
+%PhaseBaseClassContributor()%
+%hdrBlankLn()%
+%hdrVersionPrefix()%
+%PhaseBaseClassVersion()%
+%hdrBlankLn()%
+%hdrEnd()%
+package %packageName%.converter;
+
+import java.util.List;
+
+import %packageName%.generator.IOProcessor;
+import %packageName%.parser.gen.%grammarName%Lexer;
+import %packageName%.parser.gen.%grammarName%ParserBaseListener;
+
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+public class %grammarName%PhaseBase extends %grammarName%ParserBaseListener {
+
+	protected PhaseState state;
+	protected IOProcessor processor;
+
+	/**
+	 * Constructor with phase transference
+	 */
+	public %grammarName%PhaseBase(PhaseState state, IOProcessor processor) {
+		super();
+		this.state = state;
+		this.processor = processor;
+	\}
+
+	public BaseDescriptor getDescriptor(ParseTree ctx) {
+		return this.state.nodeContextMap.get(ctx);
+	\}
+
+	public void setDescriptor(ParseTree ctx, BaseDescriptor ncd) {
+		this.state.nodeContextMap.put(ctx, ncd);
+	\}
+
+	public String childText(ParserRuleContext rc, int idx) {
+		return rc.getChild(idx).getText();
+	\}
+
+	public String commentLeft(ParserRuleContext rc) {
+		int tdx = rc.getStart().getTokenIndex();
+		if (tdx <= 0) return "";
+		int jdx = tdx - 1;
+		boolean onlyWS = true;
+		boolean done = false;
+		while (!done) {
+			switch (this.state.tokens.get(jdx).getType()) {
+				case %grammarName%Lexer.Comment:
+				case %grammarName%Lexer.CommentLine:
+					onlyWS = false;
+				case %grammarName%Lexer.HorzWS:
+				case %grammarName%Lexer.VertWS:
+					if (jdx > 0) {
+						jdx--;
+					\} else {
+						done = true;
+					\}
+					break;
+				default:
+					done = true;
+			\}
+		\}
+		if (onlyWS) return "";
+		if (this.state.commentMarkers.contains(jdx)) {
+			return "";
+		\} else {
+			this.state.commentMarkers.add(jdx);
+		\}
+
+		StringBuilder sb = new StringBuilder();
+		for (; jdx < tdx; jdx++) {
+			sb.append(this.state.tokens.get(jdx).getText());
+		\}
+		return sb.toString();
+	\}
+
+	public String commentRight(ParserRuleContext rc) {
+		int tdx = rc.getStop().getTokenIndex();
+		int jdx = tdx + 1;
+		boolean onlyWS = true;
+		boolean done = false;
+		while (!done) {
+			switch (this.state.tokens.get(jdx).getType()) {
+				case %grammarName%Lexer.CommentLine:
+					onlyWS = false;
+				case %grammarName%Lexer.HorzWS:
+					jdx++;
+					break;
+				case %grammarName%Lexer.EOF:
+					done = true;
+					break;
+				default:
+					done = true;
+			\}
+		\}
+		if (onlyWS) return "";
+		if (this.state.commentMarkers.contains(jdx)) {
+			return "";
+		\} else {
+			this.state.commentMarkers.add(jdx);
+		\}
+
+		StringBuilder sb = new StringBuilder();
+		for (tdx++; tdx <= jdx; tdx++) {
+			sb.append(this.state.tokens.get(tdx).getText());
+		\}
+		return sb.toString();
+	\}
+
+	/**
+	 * Returns the qualified name after removal of the last 'dotted' segment.
+	 * 
+	 * @param qualifiedName
+	 * @return
+	 */
+	public String removeTerminal(String qualifiedName) {
+		int idx = qualifiedName.lastIndexOf('.');
+		if (idx == -1) return qualifiedName;
+		return qualifiedName.substring(0, idx);
+	\}
+
+	public ParseTree nextPeer(ParserRuleContext ctx, int idx) {
+		List<ParseTree> ctxs = ctx.children;
+		if (idx + 1 < ctxs.size()) {
+			return ctxs.get(idx + 1);
+		\}
+		return null;
+	\}
+\}
+
+
+>>
+
+FileGenPhaseCopyright() ::= <<
+ * Copyright (c) 2008-2014 G Rosenberg.
+ * 
+>>
+
+FileGenPhaseContributor() ::= <<
+ *		G Rosenberg - initial API and implementation
+ * 
+>>
+
+FileGenPhaseVersion() ::= <<
+ * 		1.0 - 2014.03.26: First release level code
+ * 		1.1 - 2014.08.26: Updates, add Tests support
+ * 
+>>
+
+FileGenPhase(packageName, grammarName) ::= <<
+%hdrBeg()%
+%FileGenPhaseCopyright()%
+%epl()%
+%hdrBlankLn()%
+%hdrContribPrefix()%
+%FileGenPhaseContributor()%
+%hdrBlankLn()%
+%hdrVersionPrefix()%
+%FileGenPhaseVersion()%
+%hdrBlankLn()%
+%hdrEnd()%
+package %packageName%.generator;
+
+public class %grammarName%FileGen {
+
+	public %grammarName%FileGen() {
+		super();
+	\}
+\}
+
+>>

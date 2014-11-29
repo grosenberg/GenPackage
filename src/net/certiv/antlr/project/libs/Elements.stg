@@ -1,0 +1,52 @@
+delimiters "%", "%"
+
+ImportNamedContexts(packageName, grammarName, namedContexts) ::= <<
+%namedContexts:{ contextName | %ImportContext(packageName, grammarName, contextName)% }%
+>>
+
+ImportContext(packageName, grammarName, contextName) ::= <<
+import %packageName%.parser.gen.%grammarName%Parser.%contextName%Context;
+
+>>
+
+ImportDescriptor(packageName, grammarName, contextName) ::= <<
+import %packageName%.converter.descriptors.%contextName%Descriptor;
+
+>>
+
+AccessMethods(contextMethods) ::= <<
+%contextMethods:{ method | %AccessMethod(method)% }%
+
+>>
+
+AccessMethod(method) ::= <<
+	public %method.retClass% %method.presName%() {
+%if(method.list)%
+		if (context().%method.callName%%method.callType% != null && context().%method.callName%%method.callType%.size() == 0) return null;
+%endif%
+		return context().%method.callName%%method.callType%;
+	}
+
+>>
+
+Phase02Imports(packageName, grammarName, contextList) ::= <<
+%contextList:{ contextName | %ImportContext(packageName, grammarName, contextName)% }%
+%contextList:{ contextName | %ImportDescriptor(packageName, grammarName, contextName)% }%
+
+>>
+
+Phase02Methods(contextList) ::= <<
+%contextList:{ contextName | %Phase02MethodSet(contextName)% }%
+
+>>
+
+Phase03Imports(packageName, grammarName, contextList) ::= <<
+%contextList:{ contextName | %ImportContext(packageName, grammarName, contextName)% }%
+%contextList:{ contextName | %ImportDescriptor(packageName, grammarName, contextName)% }%
+
+>>
+
+Phase03Methods(contextList) ::= <<
+%contextList:{ contextName | %Phase03MethodSet(contextName)% }%
+
+>>

@@ -1,27 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN" name="StdCertivConfig" packages="net.certiv">
+<Configuration status="WARN" name="GenProjectConfig">
 	<Properties>
 		<Property name="logName">./GenProject.log</Property>
+		<Property name="logPattern">%d %-5p [%t] %20.30F:%-4L - %m%n</Property>
 	</Properties>
 
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
-			<PatternLayout pattern="%d %-5p [%t] %20.30F:%-4L - %m%n"/>
+			<PatternLayout pattern="${logPattern}"/>			
 		</Console>
 
-		<File name="Logfile" fileName="${logName}" append="false">
-			<PatternLayout pattern="%d %-5p [%t] %20.30F:%-4L - %m%n"/>
+		<File name="GenLog" fileName="${logName}" immediateFlush="false" append="false">
+			<PatternLayout pattern="${logPattern}"/>			
 		</File>
 
 	</Appenders>
 
 	<Loggers>
-		<Logger name="net.certiv.antlr" level="DEBUG">
-			<AppenderRef ref="Logfile"/>
-		</Logger>
-
-		<Root level="info">
-			<AppenderRef ref="Console"/>
+		<Root level="TRACE">
+			<AppenderRef ref="Console" level="DEBUG" />
+			<AppenderRef ref="GenLog"  level="DEBUG" />
 		</Root>
 	</Loggers>
 </Configuration>

@@ -1,0 +1,1508 @@
+{
+    "magicId": "ReGen451",
+    "projectBasePath": "D:/DevFiles/Java/WorkSpaces/Main/GenProject/",
+    "projectRoot": "src",
+    "templatePackage": "net.certiv.antlr.project.templates",
+    "modelGrammar": "Json",
+    "modelBasePath": "D:/DevFiles/Java/WorkSpaces/Main/GenProjectModel/",
+    "modelBasePackage": "net.certiv.json",
+    "excludePackages": [
+        "net.certiv.json.parser.gen"
+    ],
+    "checkedTypes": [
+        "java",
+        "g4",
+        "xml",
+        "bat",
+        "sh",
+        "project",
+        "classpath",
+        "jar"
+    ],
+    "rootTypes": [
+        "xml",
+        "bat",
+        "sh",
+        "project",
+        "classpath",
+        "jar"
+    ],
+    "rootDirs": [
+        "src",
+        "test",
+        "lib"
+    ],
+    "units": {
+        "Log": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.util",
+            "modelFilename": "Log.java",
+            "unitName": "LogClass",
+            "primary": true,
+            "unitType": "util",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Util"
+        },
+        "Reflect": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.util",
+            "modelFilename": "Reflect.java",
+            "unitName": "ReflectClass",
+            "primary": true,
+            "unitType": "util",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Util"
+        },
+        "Strings": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.util",
+            "modelFilename": "Strings.java",
+            "unitName": "StringsClass",
+            "primary": true,
+            "unitType": "util",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Util"
+        },
+        "BaseDescriptor": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "BaseDescriptor.java",
+            "unitName": "BaseDescriptorClass",
+            "primary": true,
+            "unitType": "core",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Descriptor"
+        },
+        "ArrayDescriptor": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter.descriptors",
+            "modelFilename": "ArrayDescriptor.java",
+            "unitName": "DescriptorClass",
+            "primary": true,
+            "unitType": "descriptor",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [
+                "Imports",
+                "DescriptorBody",
+         		"DescriptorMethods",
+                "DescriptorEnd"
+            ],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Descriptor"
+        },
+        "Imports": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter.descriptors",
+            "modelFilename": "ArrayDescriptor.java",
+            "unitName": "ImportNamedContexts",
+            "primary": false,
+            "unitType": "descriptor",
+            "templateVars": [
+                "packageName",
+                "grammarName",
+                "namedContexts"
+            ],
+            "parts": [],
+            "literal": true,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Descriptor"
+        },
+        "DescriptorBody": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter.descriptors",
+            "modelFilename": "ArrayDescriptor.java",
+            "unitName": "DescriptorBody",
+            "primary": false,
+            "unitType": "descriptor",
+            "templateVars": [
+                "contextName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Descriptor"
+        },
+        "DescriptorMethods": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter.descriptors",
+            "modelFilename": "ArrayDescriptor.java",
+            "unitName": "AccessMethods",
+            "primary": false,
+            "unitType": "descriptor",
+            "templateVars": [
+                "contextMethods"
+            ],
+            "parts": [],
+            "literal": true,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Descriptor"
+        },
+        "DescriptorEnd": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter.descriptors",
+            "modelFilename": "ArrayDescriptor.java",
+            "unitName": "DescriptorEnd",
+            "primary": false,
+            "unitType": "descriptor",
+            "templateVars": [
+                "contextName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Descriptor"
+        },
+        "ElementDescriptor": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter.descriptors",
+            "modelFilename": "ElementDescriptor.java",
+            "unitName": "ElementDescriptor",
+            "primary": true,
+            "unitType": "ignore",
+            "templateVars": [],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "None"
+        },
+        "JsonDescriptor": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter.descriptors",
+            "modelFilename": "JsonDescriptor.java",
+            "unitName": "JsonDescriptor",
+            "primary": true,
+            "unitType": "ignore",
+            "templateVars": [],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "None"
+        },
+        "ObjectDescriptor": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter.descriptors",
+            "modelFilename": "ObjectDescriptor.java",
+            "unitName": "ObjectDescriptor",
+            "primary": true,
+            "unitType": "ignore",
+            "templateVars": [],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "None"
+        },
+        "ValueDescriptor": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter.descriptors",
+            "modelFilename": "ValueDescriptor.java",
+            "unitName": "ValueDescriptor",
+            "primary": true,
+            "unitType": "ignore",
+            "templateVars": [],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "None"
+        },
+        "IDescriptor": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "IDescriptor.java",
+            "unitName": "IDescriptorClass",
+            "primary": true,
+            "unitType": "core",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Converter"
+        },
+        "Converter": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "Converter.java",
+            "unitName": "ConverterClass",
+            "primary": true,
+            "unitType": "derived",
+            "templateVars": [
+                "packageName",
+                "grammarName",
+                "startRule"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Converter"
+        },
+        "JsonPhase01": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "JsonPhase01.java",
+            "unitName": "Phase01Class",
+            "primary": true,
+            "unitType": "walker",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Phase"
+        },
+        "JsonPhase02": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "JsonPhase02.java",
+            "unitName": "Phase02Class",
+            "primary": true,
+            "unitType": "walker",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [
+                "Phase02Imports",
+                "Phase02Body",
+                "Phase02Methods",
+                "Phase02End"
+            ],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Phase"
+        },
+        "Phase02Imports": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "JsonPhase02.java",
+            "unitName": "Phase02Imports",
+            "primary": false,
+            "unitType": "walker",
+            "templateVars": [
+                "packageName",
+                "grammarName",
+                "contextList"
+            ],
+            "parts": [],
+            "literal": true,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Phase"
+        },
+        "Phase02Body": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "JsonPhase02.java",
+            "unitName": "Phase02Body",
+            "primary": false,
+            "unitType": "walker",
+            "templateVars": [
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Phase"
+        },
+        "Phase02Methods": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "JsonPhase02.java",
+            "unitName": "Phase02Methods",
+            "primary": false,
+            "unitType": "walker",
+            "templateVars": [
+                "contextList"
+            ],
+            "parts": [
+            	"Phase02MethodSet"
+            ],
+            "literal": true,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Phase"
+        },
+        "Phase02MethodSet": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "JsonPhase02.java",
+            "unitName": "Phase02MethodSet",
+            "primary": false,
+            "unitType": "walker",
+            "templateVars": [
+                "contextName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Phase"
+        },
+        "Phase02End": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "JsonPhase02.java",
+            "unitName": "Phase02End",
+            "primary": false,
+            "unitType": "walker",
+            "templateVars": [],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Phase"
+        },
+        "JsonPhase03": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "JsonPhase03.java",
+            "unitName": "Phase03Class",
+            "primary": true,
+            "unitType": "walker",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [
+                "Phase03Imports",
+                "Phase03Body",
+                "Phase03Methods",
+                "Phase03End"
+            ],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Phase"
+        },
+        "Phase03Imports": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "JsonPhase03.java",
+            "unitName": "Phase03Imports",
+            "primary": false,
+            "unitType": "walker",
+            "templateVars": [
+                "packageName",
+                "grammarName",
+                "contextList"
+            ],
+            "parts": [],
+            "literal": true,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Phase"
+        },
+        "Phase03Body": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "JsonPhase03.java",
+            "unitName": "Phase03Body",
+            "primary": false,
+            "unitType": "walker",
+            "templateVars": [
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Phase"
+        },
+        "Phase03Methods": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "JsonPhase03.java",
+            "unitName": "Phase03Methods",
+            "primary": false,
+            "unitType": "walker",
+            "templateVars": [
+                "contextList"
+            ],
+            "parts": [
+            	"Phase03MethodSet"
+            ],
+            "literal": true,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Phase"
+        },
+        "Phase03MethodSet": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "JsonPhase03.java",
+            "unitName": "Phase03MethodSet",
+            "primary": false,
+            "unitType": "walker",
+            "templateVars": [
+                "contextName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Phase"
+        },
+        "Phase03End": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "JsonPhase03.java",
+            "unitName": "Phase03End",
+            "primary": false,
+            "unitType": "walker",
+            "templateVars": [],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Phase"
+        },
+        "JsonPhaseBase": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "JsonPhaseBase.java",
+            "unitName": "PhaseBaseClass",
+            "primary": true,
+            "unitType": "walker",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Phase"
+        },
+        "PhaseState": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "PhaseState.java",
+            "unitName": "PhaseStateClass",
+            "primary": true,
+            "unitType": "state",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "State"
+        },
+        "Value": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "Value.java",
+            "unitName": "ValueClass",
+            "primary": true,
+            "unitType": "state",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "State"
+        },
+        "IOProcessor": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.generator",
+            "modelFilename": "IOProcessor.java",
+            "unitName": "IOProcessor",
+            "primary": true,
+            "unitType": "core",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Converter"
+        },
+        "JsonFileGen": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.generator",
+            "modelFilename": "JsonFileGen.java",
+            "unitName": "FileGenPhase",
+            "primary": true,
+            "unitType": "walker",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Phase"
+        },
+        "JsonErrorListener": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.parser",
+            "modelFilename": "JsonErrorListener.java",
+            "unitName": "ErrorListenerClass",
+            "primary": true,
+            "unitType": "grammar",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Parser"
+        },
+        "JsonLexer": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.parser",
+            "modelFilename": "JsonLexer.g4",
+            "unitName": "LexerGrammar",
+            "primary": true,
+            "unitType": "grammar",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Parser"
+        },
+        "JsonLexerErrorStrategy": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.parser",
+            "modelFilename": "JsonLexerErrorStrategy.java",
+            "unitName": "LexerErrorStrategyClass",
+            "primary": true,
+            "unitType": "grammar",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Parser"
+        },
+        "JsonParser": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.parser",
+            "modelFilename": "JsonParser.g4",
+            "unitName": "ParserGrammar",
+            "primary": true,
+            "unitType": "grammar",
+            "templateVars": [
+                "packageName",
+                "grammarName",
+                "startRule"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Parser"
+        },
+        "JsonParserErrorStrategy": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.parser",
+            "modelFilename": "JsonParserErrorStrategy.java",
+            "unitName": "ParserErrorStrategyClass",
+            "primary": true,
+            "unitType": "grammar",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Parser"
+        },
+        "JsonToken": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.parser",
+            "modelFilename": "JsonToken.java",
+            "unitName": "TokenClass",
+            "primary": true,
+            "unitType": "grammar",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Parser"
+        },
+        "JsonTokenFactory": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.parser",
+            "modelFilename": "JsonTokenFactory.java",
+            "unitName": "TokenFactoryClass",
+            "primary": true,
+            "unitType": "grammar",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Parser"
+        },
+        "LexerAdaptor": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.parser",
+            "modelFilename": "LexerAdaptor.java",
+            "unitName": "LexerAdaptorClass",
+            "primary": true,
+            "unitType": "grammar",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Parser"
+        },
+        "LexerHelper": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.parser",
+            "modelFilename": "LexerHelper.java",
+            "unitName": "LexerHelperClass",
+            "primary": true,
+            "unitType": "grammar",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Parser"
+        },
+        "Scope": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.symbol",
+            "modelFilename": "Scope.java",
+            "unitName": "ScopeClass",
+            "primary": true,
+            "unitType": "symbol",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Symbol"
+        },
+        "Symbol": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.symbol",
+            "modelFilename": "Symbol.java",
+            "unitName": "SymbolClass",
+            "primary": true,
+            "unitType": "symbol",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Symbol"
+        },
+        "SymbolTable": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.symbol",
+            "modelFilename": "SymbolTable.java",
+            "unitName": "SymbolTableClass",
+            "primary": true,
+            "unitType": "symbol",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Symbol"
+        },
+        "Content": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.types",
+            "modelFilename": "Content.java",
+            "unitName": "ContentClass",
+            "primary": true,
+            "unitType": "symbol",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "State"
+        },
+        "Op": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.types",
+            "modelFilename": "Op.java",
+            "unitName": "OpClass",
+            "primary": true,
+            "unitType": "symbol",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "State"
+        },
+        "ScopeType": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.types",
+            "modelFilename": "ScopeType.java",
+            "unitName": "ScopeTypeClass",
+            "primary": true,
+            "unitType": "symbol",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Symbol"
+        },
+        "StmtType": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.types",
+            "modelFilename": "StmtType.java",
+            "unitName": "StmtTypeClass",
+            "primary": true,
+            "unitType": "symbol",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "State"
+        },
+        "StyleType": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.types",
+            "modelFilename": "StyleType.java",
+            "unitName": "StyleTypeClass",
+            "primary": true,
+            "unitType": "symbol",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "State"
+        },
+        "ValueType": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.types",
+            "modelFilename": "ValueType.java",
+            "unitName": "ValueTypeClass",
+            "primary": true,
+            "unitType": "symbol",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "State"
+        },
+        "AbstractBase": {
+            "modelRoot": "test",
+            "modelPackage": "net.certiv.json.test.base",
+            "modelFilename": "AbstractBase.java",
+            "unitName": "AbstractBaseClass",
+            "primary": true,
+            "unitType": "test",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Test"
+        },
+        "TestBase": {
+            "modelRoot": "test",
+            "modelPackage": "net.certiv.json.test.base",
+            "modelFilename": "TestBase.java",
+            "unitName": "TestBaseClass",
+            "primary": true,
+            "unitType": "test",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Test"
+        },
+        "TestWord": {
+            "modelRoot": "test",
+            "modelPackage": "net.certiv.json.test",
+            "modelFilename": "TestWord.java",
+            "unitName": "TestWordClass",
+            "primary": true,
+            "unitType": "test",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Test"
+        },
+        "JsonTool": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.parser",
+            "modelFilename": "JsonTool.bat",
+            "unitName": "AntlrTool",
+            "primary": true,
+            "unitType": "tool",
+            "templateVars": [
+                "projectName",
+                "sourcePath",
+                "packagePath",
+                "workspacePath",
+                "antlrPathname",
+                "javaPath",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": true,
+            "templateGroup": "Tool"
+        },
+        "GenProject": {
+            "modelRoot": "src",
+            "modelPackage": "",
+            "modelFilename": "GenProject.bat",
+            "unitName": "GenProjectFile",
+            "primary": true,
+            "unitType": "tool",
+            "templateVars": [
+                "projectName",
+                "packageName",
+                "workspacePath",
+                "sourcePath",
+                "packagePath",
+                "antlrPathname",
+                "genProjPathname",
+                "javaPath",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Tool"
+        },
+        "log4j2": {
+            "modelRoot": "src",
+            "modelPackage": "",
+            "modelFilename": "log4j2.xml",
+            "unitName": "log4J2File",
+            "primary": true,
+            "unitType": "tool",
+            "templateVars": [
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Xml"
+        },
+        "log4j2-test": {
+            "modelRoot": "test",
+            "modelPackage": "",
+            "modelFilename": "log4j2-test.xml",
+            "unitName": "log4j2Test",
+            "primary": true,
+            "unitType": "tool",
+            "templateVars": [
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Xml"
+        },
+        "Classpath": {
+            "modelRoot": "",
+            "modelPackage": "",
+            "modelFilename": ".classpath",
+            "unitName": "Classpath",
+            "primary": true,
+            "unitType": "tool",
+            "templateVars": [],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Xml"
+        },
+        "Project": {
+            "modelRoot": "",
+            "modelPackage": "",
+            "modelFilename": ".project",
+            "unitName": "Project",
+            "primary": true,
+            "unitType": "tool",
+            "templateVars": [
+                "projectName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": "Xml"
+        },
+        "antlr-4.4-complete": {
+            "modelRoot": "lib",
+            "modelPackage": "",
+            "modelFilename": "antlr-4.4-complete.jar",
+            "unitName": "antlr-4.4-complete",
+            "primary": true,
+            "unitType": "binary",
+            "templateVars": [],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": ""
+        },
+        "commons-io-2.4": {
+            "modelRoot": "lib",
+            "modelPackage": "",
+            "modelFilename": "commons-io-2.4.jar",
+            "unitName": "commons-io-2.4",
+            "primary": true,
+            "unitType": "binary",
+            "templateVars": [],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": ""
+        },
+        "log4j-api-2.0": {
+            "modelRoot": "lib",
+            "modelPackage": "",
+            "modelFilename": "log4j-api-2.0.jar",
+            "unitName": "log4j-api-2.0",
+            "primary": true,
+            "unitType": "binary",
+            "templateVars": [],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": ""
+        },
+        "log4j-core-2.0": {
+            "modelRoot": "lib",
+            "modelPackage": "",
+            "modelFilename": "log4j-core-2.0.jar",
+            "unitName": "log4j-core-2.0",
+            "primary": true,
+            "unitType": "binary",
+            "templateVars": [],
+            "parts": [],
+            "literal": false,
+            "license": null,
+            "copyright": false,
+            "contributor": false,
+            "description": false,
+            "version": false,
+            "templateGroup": ""
+        }
+    },
+    "variables": {
+        "packageName": {
+            "variable": "packageName",
+            "vType": "MatchVar",
+            "source": null,
+            "select": null,
+            "search": "net.certiv.json",
+            "replace": null,
+            "marker": null
+        },
+        "projectName": {
+            "variable": "projectName",
+            "vType": "MatchVar",
+            "source": null,
+            "select": null,
+            "search": "GenProjectModel",
+            "replace": null,
+            "marker": null
+        },
+        "grammarName": {
+            "variable": "grammarName",
+            "vType": "MatchVar",
+            "source": null,
+            "select": null,
+            "search": "Json",
+            "replace": null,
+            "marker": null
+        },
+        "contextName": {
+            "variable": "contextName",
+            "vType": "MatchVar",
+            "source": null,
+            "select": null,
+            "search": "Array",
+            "replace": null,
+            "marker": null
+        },
+        "namedContexts": {
+            "variable": "namedContexts",
+            "vType": "MatchVarList",
+            "source": null,
+            "select": null,
+            "search": "Array",
+            "replace": null,
+            "marker": null
+        },
+        "contextMethods": {
+            "variable": "contextMethods",
+            "vType": "MatchVarList",
+            "source": null,
+            "select": null,
+            "search": "Array",
+            "replace": null,
+            "marker": null
+        },
+        "contextList": {
+            "variable": "contextList",
+            "vType": "MatchVarList",
+            "source": null,
+            "select": null,
+            "search": "Array",
+            "replace": null,
+            "marker": null
+        },
+        "startRule": {
+            "variable": "startRule",
+            "vType": "MatchVar",
+            "source": null,
+            "select": null,
+            "search": "json",
+            "replace": null,
+            "marker": null
+        },
+        "workspacePath": {
+            "variable": "workspacePath",
+            "vType": "MatchVar",
+            "source": null,
+            "select": null,
+            "search": "D:\\DevFiles\\Java\\WorkSpaces\\Main",
+            "replace": null,
+            "marker": null
+        },
+        "sourcePath": {
+            "variable": "sourcePath",
+            "vType": "MatchVar",
+            "source": null,
+            "select": null,
+            "search": "src",
+            "replace": null,
+            "marker": null
+        },
+        "packagePath": {
+            "variable": "packagePath",
+            "vType": "MatchVar",
+            "source": null,
+            "select": null,
+            "search": "net\\certiv\\json",
+            "replace": null,
+            "marker": null
+        },
+        "antlrPathname": {
+            "variable": "antlrPathname",
+            "vType": "MatchVar",
+            "source": null,
+            "select": null,
+            "search": "lib\\antlr-4.4-complete.jar",
+            "replace": null,
+            "marker": null
+        },
+        "genProjPathname": {
+            "variable": "genProjPathname",
+            "vType": "MatchVar",
+            "source": null,
+            "select": null,
+            "search": "jars\\GenProject-1.1-completejar",
+            "replace": null,
+            "marker": null
+        },
+        "javaPath": {
+            "variable": "javaPath",
+            "vType": "MatchVar",
+            "source": null,
+            "select": null,
+            "search": "C:\\Program Files\\Java\\jre7",
+            "replace": null,
+            "marker": null
+        }
+    },
+    "templates": {
+        "Converter": {
+            "name": "Converter",
+            "imports": [
+                "../libs/Header"
+            ],
+            "delimiter": "%",
+            "divider": "// <> ==========",
+            "marker": "<>"
+        },
+        "Descriptor": {
+            "name": "Descriptor",
+            "imports": [
+                "../libs/Header",
+                "../libs/Elements"
+            ],
+            "delimiter": "%",
+            "divider": "// <> ==========",
+            "marker": "<>"
+        },
+        "Parser": {
+            "name": "Parser",
+            "imports": [
+                "../libs/Header"
+            ],
+            "delimiter": "$",
+            "divider": "// <> ==========",
+            "marker": "<>"
+        },
+        "Phase": {
+            "name": "Phase",
+            "imports": [
+                "../libs/Header",
+                "../libs/Elements"
+            ],
+            "delimiter": "%",
+            "divider": "// <> ==========",
+            "marker": "<>"
+        },
+        "Symbol": {
+            "name": "Symbol",
+            "imports": [
+                "../libs/Header"
+            ],
+            "delimiter": "%",
+            "divider": "// <> ==========",
+            "marker": "<>"
+        },
+        "State": {
+            "name": "State",
+            "imports": [
+                "../libs/Header"
+            ],
+            "delimiter": "$",
+            "divider": "// <> ==========",
+            "marker": "<>"
+        },
+        "Test": {
+            "name": "Test",
+            "imports": [
+                "../libs/Header"
+            ],
+            "delimiter": "%",
+            "divider": "// <> ==========",
+            "marker": "<>"
+        },
+        "Tool": {
+            "name": "Tool",
+            "imports": [],
+            "delimiter": "<>",
+            "divider": null,
+            "marker": null
+        },
+        "Util": {
+            "name": "Util",
+            "imports": [
+                "../libs/Header"
+            ],
+            "delimiter": "%",
+            "divider": "// <> ==========",
+            "marker": "<>"
+        },
+        "Xml": {
+            "name": "Xml",
+            "imports": [],
+            "delimiter": "~",
+            "divider": null,
+            "marker": null
+        }
+    }
+}
