@@ -34,8 +34,8 @@ package %packageName%.converter;
 
 import java.util.ArrayList;
 
+import %packageName%.IOProcessor;
 import %packageName%.converter.descriptors.%grammarName%Descriptor;
-import %packageName%.generator.IOProcessor;
 import %packageName%.parser.gen.%grammarName%Parser.%grammarName%Context;
 import %packageName%.util.Log;
 import %packageName%.util.Reflect;
@@ -147,8 +147,8 @@ Phase02Class(packageName) ::= <<
 %hdrEnd()%
 package %packageName%.converter;
 
-import %packageName%.generator.IOProcessor;
-import %packageName%.types.ScopeType;
+import %packageName%.IOProcessor;
+import %packageName%.symbol.ScopeType;
 import %packageName%.util.Log;
 import %packageName%.util.Reflect;
 
@@ -264,8 +264,8 @@ Phase03Class(packageName) ::= <<
 %hdrEnd()%
 package %packageName%.converter;
 
-import %packageName%.generator.IOProcessor;
-import %packageName%.types.ScopeType;
+import %packageName%.IOProcessor;
+import %packageName%.symbol.ScopeType;
 import %packageName%.util.Log;
 import %packageName%.util.Reflect;
 
@@ -382,7 +382,7 @@ package %packageName%.converter;
 
 import java.util.List;
 
-import %packageName%.generator.IOProcessor;
+import %packageName%.IOProcessor;
 import %packageName%.parser.gen.%grammarName%Lexer;
 import %packageName%.parser.gen.%grammarName%ParserBaseListener;
 
@@ -537,7 +537,7 @@ FileGenPhase(packageName, grammarName) ::= <<
 %FileGenPhaseVersion()%
 %hdrBlankLn()%
 %hdrEnd()%
-package %packageName%.generator;
+package %packageName%.converter;
 
 public class %grammarName%FileGen {
 

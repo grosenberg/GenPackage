@@ -1,6 +1,105 @@
 delimiters "%", "%"
 import "D:\DevFiles\Java\WorkSpaces\Main\GenProject\src\net\certiv\antlr\project\libs\Header.stg"
 
+JsonMainClassCopyright() ::= <<
+ * Copyright (c) 2008-2014 G Rosenberg.
+ * 
+>>
+
+JsonMainClassContributor() ::= <<
+ *		G Rosenberg - initial API and implementation
+ * 
+>>
+
+JsonMainClassVersion() ::= <<
+ * 		1.0 - 2014.03.26: First release level code
+ * 		1.1 - 2014.08.26: Updates, add Tests support
+ * 
+>>
+
+JsonMainClass(packageName, grammarName) ::= <<
+%hdrBeg()%
+%JsonMainClassCopyright()%
+%epl()%
+%hdrBlankLn()%
+%hdrContribPrefix()%
+%JsonMainClassContributor()%
+%hdrBlankLn()%
+%hdrVersionPrefix()%
+%JsonMainClassVersion()%
+%hdrBlankLn()%
+%hdrEnd()%
+package %packageName%;
+
+import %packageName%.converter.Converter;
+import %packageName%.converter.PhaseState;
+import %packageName%.util.Log;
+
+public class %grammarName%Main {
+
+	private IOProcessor processor;
+
+	public static void main(String[] args) {
+		new %grammarName%Main(args);
+	\}
+
+	public %grammarName%Main(String[] args) {
+
+		if (args == null || args.length == 0) {
+			String input = "D:/DevFiles/Java/WorkSpaces/Main/GenProjectModel/Sample.json";
+			args = new String[] { "-i", input \};
+		\}
+
+		processor = new IOProcessor(args);
+		if (processor.init()) {
+			Log.info(this, "%grammarName%Main running...");
+
+			String srcData = processor.loadData();
+			if (srcData.length() == 0) {
+				Log.error(this, "Startup failed.");
+				return;
+			\}
+			Log.info(this, "Startup complete.");
+
+			Converter remarkConverter = new Converter(processor);
+			String result = remarkConverter.convert(srcData);
+			processor.storeData(result);
+
+			Log.info(this, "Done.");
+		\} else {
+			Log.error(this, "%grammarName%Main Failed.");
+		\}
+	\}
+
+	/**
+	 * %grammarName%Main - re-entry point for embedded use<br>
+	 * <br>
+	 * Usage:<br>
+	 * %grammarName%Main jm = new %grammarName%Main();<br>
+	 * String resultData = jm.start(String srcData, SymbolTable symTable);
+	 */
+	public %grammarName%Main() {
+		super();
+	\}
+
+	/**
+	 * Start embedded run
+	 * 
+	 * @param srcData data to evaluate
+	 * @param state carry data between phases - inlcudes symbol table
+	 * @param iop the I/O processor
+	 * @return
+	 */
+	public String start(String srcData, PhaseState state, IOProcessor iop) {
+		Converter nominal = new Converter(iop);
+		PhaseState srcState = state.clone();
+		return nominal.convert(srcData, srcState);
+	\}
+\}
+
+
+>>
+
 IDescriptorClassCopyright() ::= <<
  * Copyright (c) 2008-2014 G Rosenberg.
  * 
@@ -83,7 +182,7 @@ package %packageName%.converter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import %packageName%.generator.IOProcessor;
+import %packageName%.IOProcessor;
 import %packageName%.parser.%grammarName%ErrorListener;
 import %packageName%.parser.%grammarName%TokenFactory;
 import %packageName%.parser.gen.%grammarName%Lexer;
@@ -193,7 +292,7 @@ IOProcessor(packageName, grammarName) ::= <<
 %IOProcessorVersion()%
 %hdrBlankLn()%
 %hdrEnd()%
-package %packageName%.generator;
+package %packageName%;
 
 import java.io.File;
 import java.io.IOException;

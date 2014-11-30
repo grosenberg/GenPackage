@@ -305,8 +305,8 @@ TestWordClass(packageName, grammarName) ::= <<
 %hdrEnd()%
 package %packageName%.test;
 
+import %packageName%.IOProcessor;
 import %packageName%.converter.Converter;
-import %packageName%.generator.IOProcessor;
 import %packageName%.parser.%grammarName%Token;
 import %packageName%.test.base.TestBase;
 

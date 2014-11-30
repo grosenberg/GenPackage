@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import %packageName%.types.ScopeType;
 import %packageName%.util.Strings;
 
 public class Scope {
@@ -201,7 +200,6 @@ package %packageName%.symbol;
 import java.util.ArrayList;
 import java.util.Stack;
 
-import %packageName%.types.ScopeType;
 import %packageName%.util.Log;
 
 public class SymbolTable {
@@ -314,7 +312,7 @@ ScopeTypeClass(packageName) ::= <<
 %ScopeTypeClassVersion()%
 %hdrBlankLn()%
 %hdrEnd()%
-package %packageName%.types;
+package %packageName%.symbol;
 
 public enum ScopeType {
 	GLOBAL,

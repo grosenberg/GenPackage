@@ -33,6 +33,26 @@
         "lib"
     ],
     "units": {
+        "JsonMain": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json",
+            "modelFilename": "JsonMain.java",
+            "unitName": "JsonMainClass",
+            "primary": true,
+            "unitType": "main",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Converter"
+        },
         "Log": {
             "modelRoot": "src",
             "modelPackage": "net.certiv.json.util",
@@ -642,7 +662,7 @@
         },
         "IOProcessor": {
             "modelRoot": "src",
-            "modelPackage": "net.certiv.json.generator",
+            "modelPackage": "net.certiv.json",
             "modelFilename": "IOProcessor.java",
             "unitName": "IOProcessor",
             "primary": true,
@@ -662,7 +682,7 @@
         },
         "JsonFileGen": {
             "modelRoot": "src",
-            "modelPackage": "net.certiv.json.generator",
+            "modelPackage": "net.certiv.json.converter",
             "modelFilename": "JsonFileGen.java",
             "unitName": "FileGenPhase",
             "primary": true,
@@ -841,26 +861,6 @@
             "version": true,
             "templateGroup": "Parser"
         },
-        "LexerHelper": {
-            "modelRoot": "src",
-            "modelPackage": "net.certiv.json.parser",
-            "modelFilename": "LexerHelper.java",
-            "unitName": "LexerHelperClass",
-            "primary": true,
-            "unitType": "grammar",
-            "templateVars": [
-                "packageName",
-                "grammarName"
-            ],
-            "parts": [],
-            "literal": false,
-            "license": "epl",
-            "copyright": true,
-            "contributor": true,
-            "description": false,
-            "version": true,
-            "templateGroup": "Parser"
-        },
         "Scope": {
             "modelRoot": "src",
             "modelPackage": "net.certiv.json.symbol",
@@ -958,7 +958,7 @@
         },
         "ScopeType": {
             "modelRoot": "src",
-            "modelPackage": "net.certiv.json.types",
+            "modelPackage": "net.certiv.json.symbol",
             "modelFilename": "ScopeType.java",
             "unitName": "ScopeTypeClass",
             "primary": true,
