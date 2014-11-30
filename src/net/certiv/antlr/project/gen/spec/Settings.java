@@ -25,7 +25,7 @@ import com.google.gson.annotations.Since;
 public class Settings {
 
 	@Since(1.0)
-	public String magicId = "<not set>"; // not null
+	public String magicId = "<not set>"; // never null
 
 	@Since(1.0)
 	public String grammarName; // "Metal"
@@ -40,11 +40,15 @@ public class Settings {
 	public String testPath; // "test"
 
 	@Since(1.0)
-	public String javaPath; // system path to the jre/jdk bin directory
+	public String javaPath; // system path to the jre/jdk home directory
 	@Since(1.0)
 	public String antlrPathname; // system pathname for jar
 	@Since(1.0)
+	public String genProjJarPathname; // system pathname for jar
+	@Since(1.0)
 	public String rulesPathname; // system pathname for rules Json file
+	@Since(1.0)
+	public String configPathname; // system pathname for config Json file
 
 	public transient boolean loaded = false;
 }

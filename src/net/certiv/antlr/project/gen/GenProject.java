@@ -17,7 +17,9 @@ package net.certiv.antlr.project.gen;
 import java.io.File;
 import java.io.IOException;
 
+import net.certiv.antlr.project.regen.spec.Unit;
 import net.certiv.antlr.project.util.Log;
+import net.certiv.antlr.project.util.Utils;
 import net.certiv.antlr.project.util.Log.LogLevel;
 
 public class GenProject {
@@ -51,9 +53,45 @@ public class GenProject {
 			return;
 		}
 
-		// create or load and update configuration
+		// create empty configuration
 		GenConfig config = new GenConfig(cwd, opts);
-		config.getGenProjPathname();
+
+		if (opts.flagInit()) {
+			if (opts.valProjectPath() == null) {
+				Log.fatal(this, "Have to specify a project pathname");
+			}
+			if (opts.valRuleSetPathname() == null) {
+				Log.fatal(this, "Have to specify the rule set pathname");
+			}
+
+			String path = opts.valProjectPath();
+			File f = new File(path);
+			if (f.exists()) {
+				if (!f.isDirectory()) {
+					Log.fatal(this, "Invalid project pathname: " + path);
+				}
+			} else {
+				Log.debug(this, "Making: " + path);
+				if (!Utils.createDirs(path)) {
+					Log.fatal(this, "Failed creating project directory: " + path);
+				}
+			}
+			try {
+				config.initSettings();
+				config.updateSettingsFromArgs();
+				config.save();
+			} catch (IOException e) {
+				Log.fatal(this, "Failed to save initial configurations file", e);
+			}
+
+			config.loadRuleSet(opts.valRuleSetPathname());
+			Unit unit = config.getRuleSet().units.get("GenProject");
+			SrcGenerator srcGen = new SrcGenerator(config, false);
+			srcGen.dispatch(unit);
+			return;
+		}
+
+		// create or load and update configuration
 		if (!config.load()) {
 			Log.error(this, "Configuration load failed");
 			return;
@@ -80,7 +118,7 @@ public class GenProject {
 				Log.error(this, "Project generation failed");
 				return;
 			}
-			Log.error(this, "Project generation completed");
+			Log.info(this, "Project generation completed");
 		}
 	}
 }

@@ -308,6 +308,7 @@ public class ReGenConfig extends ConfigBase {
 			if (ok) checkDupl(varNames, var.variable, LogLevel.Warn, vname, "Duplicate variable names:");
 			ok &= checkNull(var.vType, LogLevel.Error, vname, "Var Type");
 			ok &= checkEmpty(var.search, LogLevel.Error, vname, "Search string");
+			// TODO: verify variable against reflected config method names
 			// ok &= checkNull(var.replace, LogLevel.Warn, vname, "Replace string");
 			// ok &= checkNull(var.wrap, LogLevel.Warn, vname, "Wrap string");
 			// ok &= checkNull(var.marker, LogLevel.Warn, vname, "Marker string");

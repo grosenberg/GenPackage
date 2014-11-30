@@ -259,14 +259,15 @@ public class ReGen {
 						vSpec.replacement = vSpec.varText;
 					}
 
+					String search = vSpec.search.replace("\\", "\\\\");
 					switch (vSpec.vType) {
 						case MatchVar:
 						case MatchVarList:
-							content = content.replace(vSpec.search, vSpec.replacement);
+							content = content.replace(search, vSpec.replacement);
 							break;
 						case RegexVar:
 						case RegexVarList:
-							content = content.replaceAll(vSpec.search, vSpec.replacement);
+							content = content.replaceAll(search, vSpec.replacement);
 							break;
 					}
 

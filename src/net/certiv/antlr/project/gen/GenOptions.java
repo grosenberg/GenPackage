@@ -27,6 +27,7 @@ public class GenOptions {
 
 	private Options options;
 	private CommandLine cli;
+	private String configName;
 
 	public GenOptions() {
 		super();
@@ -41,37 +42,37 @@ public class GenOptions {
 		options.addOption("t", "test", true, "internal path to the project test directory");
 		options.addOption("j", "java", true, "system path to java home directory");
 		options.addOption("a", "antlr", true, "system path to the antlr jar");
+		options.addOption("e", "genpr", true, "system path to the GenProject jar");
 		options.addOption("r", "rulesPathname", true, "system path to the project rule set");
+		options.addOption("o", "configPathname", true, "system path to the project configuration file");
 
 		// procedurals
+		options.addOption("i", "initialize", false, "initialize new project");
 		options.addOption("c", "create", false, "create project files");
-		// options.addOption("x", "tools", false, "create tools and basic grammar files");
 		options.addOption("d", "descriptors", false, "create descriptor files only");
 		options.addOption("h", "help", false, "help: print usage information");
 		options.addOption("H", "Hint", false, "Hint: print example usage information");
 
-		options.addOption("f", false, "force overwrite operation (use with caution)");
+		options.addOption("f", "force", false, "force overwrite operation (use with caution)");
 
 	}
 
 	public void printUsage() {
 		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp("GenProject [options] rulesPathname", options);
+		formatter.printHelp("GenProject [options] configPathname", options);
 	}
 
 	public void printHints() {
 		System.out.println("Exemplary values: ");
 		System.out.println("");
-		System.out.println("grammar name is : 'Json'");
-		System.out.println("package name is : 'net.certiv.json'");
-		System.out.println("");
-		System.out.println("project is      : 'D:/DevFiles/Java/WorkSpaces/Main/MyJsonProject'");
-		System.out.println("source is       : 'src'");
-		System.out.println("test is         : 'test'");
-		System.out.println("java is         : 'C:/Program Files/Java/jre7/bin'");
-		System.out.println("antlr is        : 'D:/DevFiles/Java/Libs/Antlr/antlr-4.4-complete.jar'");
-		System.out.println("");
-		System.out.println("rule set is     : 'D:/DevFiles/Java/Rules/GenProjectRulseSet.json'");
+		System.out.println("-g Json                                                 // grammar name");
+		System.out.println("-n net.certiv.json                                      // base package name");
+		System.out.println("-s src                                                  // source path fragment");
+		System.out.println("-t test                                                 // test path fragment");
+		System.out.println("-p D:/DevFiles/Java/WorkSpaces/Main/MyJsonProject       // project pathname");
+		System.out.println("-j C:/Program Files/Java/jre7                           // java home path");
+		System.out.println("-a D:/DevFiles/Java/Libs/Antlr/antlr-4.4-complete.jar   // Antlr jar pathname");
+		System.out.println("-r D:/DevFiles/Java/Rules/GenProjectRulseSet.json       // rules set pathname");
 	}
 
 	public boolean processOptions(String[] args) {
@@ -86,16 +87,25 @@ public class GenOptions {
 	}
 
 	private boolean hasUnrecognized() {
-		if (cli.getArgs().length > 0) { // getArgs is really getUnrecognizedArgs!!!
-			Log.warn(this, "Unrecognized Options: " + cli.getArgList().toString());
-			printUsage();
-			return true;
+		// after parsing, getArgs returns only unrecognized
+		if (argCount() == 0) return false;
+		if (argCount() == 1) {
+			if (cli.getArgs()[0].endsWith(GenConfig.configFileSuffix)) {
+				this.configName = cli.getArgs()[0];
+				return false;
+			}
 		}
-		return false;
+		Log.warn(this, "Unrecognized Options: " + cli.getArgList().toString());
+		printUsage();
+		return true;
 	}
 
 	public int argCount() {
-		return cli.getOptions().length;
+		return cli.getArgs().length;
+	}
+
+	public boolean flagInit() {
+		return cli.hasOption("i");
 	}
 
 	public boolean flagCreate() {
@@ -148,6 +158,15 @@ public class GenOptions {
 
 	public String valAntlrPathname() {
 		return value("a");
+	}
+
+	public String valGenProjectJarPathname() {
+		return value("e");
+	}
+
+	public String valConfigName() {
+		if (value("o") != null) return value("o");
+		return configName;
 	}
 
 	private String value(String opt) {

@@ -123,7 +123,7 @@
             "parts": [
                 "Imports",
                 "DescriptorBody",
-         		"DescriptorMethods",
+                "DescriptorMethods",
                 "DescriptorEnd"
             ],
             "literal": false,
@@ -415,7 +415,7 @@
                 "contextList"
             ],
             "parts": [
-            	"Phase02MethodSet"
+                "Phase02MethodSet"
             ],
             "literal": true,
             "license": null,
@@ -536,7 +536,7 @@
                 "contextList"
             ],
             "parts": [
-            	"Phase03MethodSet"
+                "Phase03MethodSet"
             ],
             "literal": true,
             "license": null,
@@ -1041,7 +1041,8 @@
             "unitType": "test",
             "templateVars": [
                 "packageName",
-                "grammarName"
+                "grammarName",
+                "startRule"
             ],
             "parts": [],
             "literal": false,
@@ -1100,11 +1101,11 @@
             "primary": true,
             "unitType": "tool",
             "templateVars": [
+                "antlrPathname",
                 "projectName",
                 "sourcePath",
                 "packagePath",
                 "workspacePath",
-                "antlrPathname",
                 "javaPath",
                 "grammarName"
             ],
@@ -1118,20 +1119,20 @@
             "templateGroup": "Tool"
         },
         "GenProject": {
-            "modelRoot": "src",
+            "modelRoot": "",
             "modelPackage": "",
             "modelFilename": "GenProject.bat",
             "unitName": "GenProjectFile",
             "primary": true,
             "unitType": "tool",
             "templateVars": [
+                "antlrPathname",
+                "projJarPathname",
                 "projectName",
                 "packageName",
                 "workspacePath",
                 "sourcePath",
                 "packagePath",
-                "antlrPathname",
-                "genProjPathname",
                 "javaPath",
                 "grammarName"
             ],
@@ -1392,16 +1393,16 @@
             "vType": "MatchVar",
             "source": null,
             "select": null,
-            "search": "lib\\antlr-4.4-complete.jar",
+            "search": "D:\\DevFiles\\Java\\WorkSpaces\\Main\\GenProjectlib\\antlr-4.4-complete.jar",
             "replace": null,
             "marker": null
         },
-        "genProjPathname": {
-            "variable": "genProjPathname",
+        "projJarPathname": {
+            "variable": "projJarPathname",
             "vType": "MatchVar",
             "source": null,
             "select": null,
-            "search": "jars\\GenProject-1.1-completejar",
+            "search": "D:\\DevFiles\\Java\\WorkSpaces\\Main\\GenProjectjars\\GenProject-2.0-completejar",
             "replace": null,
             "marker": null
         },

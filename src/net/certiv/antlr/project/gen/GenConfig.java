@@ -33,23 +33,22 @@ import net.certiv.antlr.project.util.Utils;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 
 import com.google.gson.JsonSyntaxException;
 
 public class GenConfig extends ConfigBase {
 
 	private static final String magicIdSettings = "AntlrProjectGen451";
-	private static final IOFileFilter antlrJar = new WildcardFileFilter("antlr-4*.jar");
+
 	private static final String AntlrJarName = "antlr-4.4-complete.jar";
-	private static final String configFileSuffix = "GenConfig.json";
+	private static final String GenProjJarName = "GenProject-2.0-complete.jar";
+
+	static final String configFileSuffix = "GenConfig.json";
+
 	private static final String JavaHome = "JAVA_HOME";
 	private static final String javaDefalutHome = "C:/Program Files/java/jre7";
 	private static final String ParserGenPath = "parser/gen";
 	private static final String parser = "Parser.java";
-	private static final String parserBaseListener = "ParserBaseListener.java";
 
 	private String cwd;
 	private GenOptions opts;		// command-line options
@@ -91,15 +90,11 @@ public class GenConfig extends ConfigBase {
 	private void loadPriorSettings() throws IOException {
 
 		// if explicitly specified
+		if (opts.valConfigName() != null && loadSettingsFile(opts.valConfigName())) return;
+
 		if (opts.valProjectPath() != null && opts.valGrammarName() != null) {
 			String configPathname = Strings.concat(opts.valProjectPath(), opts.valGrammarName() + configFileSuffix);
-			if (!loadSettingsFile(configPathname)) {
-				throw new IOException("Failed to load/validate configuration file: " + configPathname);
-			}
-
-			setGenProjectPath(opts.valProjectPath());
-			setGenGrammarName(opts.valGrammarName());
-			return;
+			if (loadSettingsFile(configPathname)) return;
 		}
 
 		// hunting...
@@ -115,7 +110,6 @@ public class GenConfig extends ConfigBase {
 				Settings tmpModel = loadFile(filename, true);
 				if (tmpModel != null) {
 					settings = tmpModel;
-					setGenProjectPath(filename);
 					return;
 				}
 			}
@@ -148,53 +142,41 @@ public class GenConfig extends ConfigBase {
 		try {
 			String content = FileUtils.readFileToString(file);
 			settings = gson.fromJson(content, Settings.class);
-			if (!magicIdSettings.equals(settings.magicId)) {
-				throw new IOException("Not a valid configuration file: " + filename);
+			if (magicIdSettings.equals(settings.magicId)) {
+				settings.loaded = true;
+				return settings;
 			}
-			settings.loaded = true;
-			return settings;
 		} catch (IOException | JsonSyntaxException e) {
 			if (!quiet) {
 				Log.error(this, "Failed to read configuration file " + filename + ": " + e.getMessage());
 			}
-			return null;
 		}
+		return null;
+	}
+
+	public void initSettings() {
+		settings.magicId = magicIdSettings;
+		settings.loaded = true;
 	}
 
 	// update from any remaining flags and save it
-	private boolean updateSettingsFromArgs() throws IOException {
+	public boolean updateSettingsFromArgs() throws IOException {
 
 		String lastError = "Unknown";
 		try {
-			// --- package name
-			if (opts.valPackageName() != null) {
-				setGenPackageName(opts.valPackageName());
-			}
-
 			// --- grammar name
 			if (opts.valGrammarName() != null) {
 				setGenGrammarName(opts.valGrammarName());
 			}
 
-			// --- java path
-			if (opts.valJavaPath() != null) {
-				String path = opts.valJavaPath();
-				path = FilenameUtils.normalizeNoEndSeparator(path);
-				if (!path.endsWith("/bin")) {
-					path += "/bin/";
-				}
-				setGenJavaPath(FilenameUtils.normalize(path));
-			} else {
-				String javaHome = System.getenv("JAVA_HOME");
-				if (javaHome == null || javaHome.length() == 0) {
-					javaHome = javaDefalutHome;
-				}
-				File f = new File(Strings.concat(javaHome, "bin"));
-				if (f.exists()) {
-					lastError = "Failure in determining default Java path";
-					String path = f.getCanonicalPath();
-					setGenJavaPath(path);
-				}
+			// --- package name
+			if (opts.valPackageName() != null) {
+				setGenPackageName(opts.valPackageName());
+			}
+
+			// --- project path
+			if (opts.valProjectPath() != null) {
+				setGenProjectPath(opts.valProjectPath());
 			}
 
 			// --- internal path: src
@@ -204,11 +186,32 @@ public class GenConfig extends ConfigBase {
 				setGenSourcePath("src");
 			}
 
-			// --- internal path: teset
+			// --- internal path: test
 			if (opts.valTestPath() != null) {
 				setGenTestPath(opts.valTestPath());
 			} else if (getGenTestPath() == null) {
 				setGenTestPath("test");
+			}
+
+			// --- java path
+			if (opts.valJavaPath() != null) {
+				String path = opts.valJavaPath();
+				path = FilenameUtils.normalizeNoEndSeparator(path);
+				if (path.endsWith("/bin")) {
+					path = FilenameUtils.getFullPathNoEndSeparator(path);
+				}
+				setGenJavaPath(path);
+			} else {
+				String javaHome = System.getenv("JAVA_HOME");
+				if (javaHome == null || javaHome.length() == 0) {
+					javaHome = javaDefalutHome;
+				}
+				File f = new File(Strings.concat(javaHome, "bin"));
+				if (f.exists()) {
+					lastError = "Failure in determining default Java path";
+					String path = f.getParent();
+					setGenJavaPath(path);
+				}
 			}
 
 			// --- antlr jar path
@@ -216,23 +219,37 @@ public class GenConfig extends ConfigBase {
 				setGenAntlrPathname(opts.valAntlrPathname());
 			} else {
 				if (getGenAntlrPathname() == null) {
-					// first try to find the jar in the filesystem starting with the parent file
-					Log.info(this, "Trying to find an ANTLR jar to use...");
-					File cwd = new File(".");
-					List<File> fList = (List<File>) FileUtils.listFiles(cwd, antlrJar, TrueFileFilter.INSTANCE);
-					if (!fList.isEmpty()) {
-						lastError = "Failure in finding default path to Antlr Jar";
-						String antlrJarPath = fList.get(0).getCanonicalPath();
-						setGenAntlrPathname(antlrJarPath);
-						Log.warn(this, "Guessing " + antlrJarPath);
-						Log.warn(this, "Edit the " + getGenGrammarName() + "Tool.bat file to correct.");
-					} else {
-						// use the default jar in jar
-						setGenAntlrPathname(AntlrJarName);
+					String pathname = Utils.scanClassPath("^.*?antlr-.*?complete.jar");
+					if (pathname == null) {
+						Log.warn(this, "Failed to find Antlr jar pathname from classpath");
+						pathname = Strings.concat(getGenProjectPath(), "lib", AntlrJarName);
+						Log.warn(this, "Guessing " + pathname);
+						Log.warn(this, "Edit " + getGenConfigPathname() + " to correct.");
 					}
+					setGenAntlrPathname(pathname);
 				}
 			}
 
+			// --- GenProject jar path
+			if (opts.valGenProjectJarPathname() != null) {
+				setGenProjJarPathname(opts.valGenProjectJarPathname());
+			} else {
+				if (getGenProjJarPathname() == null) {
+					String pathname = Utils.findJarPathname(this.getClass());
+					if (pathname == null) {
+						pathname = Utils.scanClassPath("^.*?genproject-.*?complete.jar");
+						if (pathname == null) {
+							Log.warn(this, "Failed to find GenProject jar pathname from classpath");
+							pathname = Strings.concat(getGenProjectPath(), "lib", GenProjJarName);
+							Log.warn(this, "Guessing " + pathname);
+							Log.warn(this, "Edit " + getGenConfigPathname() + " to correct.");
+						}
+					}
+					setGenProjJarPathname(pathname);
+				}
+			}
+
+			// --- rules set pathname
 			if (opts.valRuleSetPathname() != null) {
 				String ruleSetPathname = opts.valRuleSetPathname();
 				ruleSetPathname = FilenameUtils.normalize(ruleSetPathname);
@@ -243,15 +260,17 @@ public class GenConfig extends ConfigBase {
 			}
 
 		} catch (Exception e) {
+			settings.loaded = false;
 			throw new IOException(lastError, e);
 		}
-		settings.loaded = true;
-		return true;
+		return settings.loaded;
 	}
 
 	public void save() throws IOException {
 		String filename = Strings.concat(getGenProjectPath(), getGenGrammarName() + configFileSuffix);
 		try {
+			settings.configPathname = filename;
+			normalize();
 			saveObj2Json(filename, settings);
 		} catch (IOException | JsonSyntaxException e) {
 			Log.error(this, "Failed to save configuration file " + filename, e);
@@ -259,26 +278,16 @@ public class GenConfig extends ConfigBase {
 		}
 	}
 
-	// public void writeFile(String filename, String contents) throws IOException {
-	// Log.debug(this, "Output to " + filename);
-	//
-	// File file = new File(filename);
-	// if (file.exists() && file.isFile()) {
-	// if (opts.flagForce()) {
-	// Log.debug(this, "Deleting " + filename);
-	// if (!file.delete()) {
-	// Log.error(this, "Failed to save file " + filename);
-	// return;
-	// }
-	// file = new File(filename);
-	// } else {
-	// return;
-	// }
-	// }
-	//
-	// Log.debug(this, "Writing content to " + filename);
-	// FileUtils.writeStringToFile(file, contents);
-	// }
+	private void normalize() {
+		settings.projectPath = FilenameUtils.normalize(settings.projectPath, true);
+		settings.sourcePath = FilenameUtils.normalize(settings.sourcePath, true);
+		settings.testPath = FilenameUtils.normalize(settings.testPath, true);
+		settings.javaPath = FilenameUtils.normalize(settings.javaPath, true);
+		settings.antlrPathname = FilenameUtils.normalize(settings.antlrPathname, true);
+		settings.genProjJarPathname = FilenameUtils.normalize(settings.genProjJarPathname, true);
+		settings.rulesPathname = FilenameUtils.normalize(settings.rulesPathname, true);
+		settings.configPathname = FilenameUtils.normalize(settings.configPathname, true);
+	}
 
 	// /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -289,15 +298,6 @@ public class GenConfig extends ConfigBase {
 				getGenPackagePath(),
 				ParserGenPath,
 				getGenGrammarName() + parser);
-	}
-
-	public String getGenListenerPathname() {
-		return Strings.concat(
-				getGenProjectPath(),
-				getGenSourcePath(),
-				getGenPackagePath(),
-				ParserGenPath,
-				getGenGrammarName() + parserBaseListener);
 	}
 
 	public String getGenPathname(Unit unit) {
@@ -322,8 +322,14 @@ public class GenConfig extends ConfigBase {
 	public boolean checkSettings() {
 		settings.loaded = false;
 		String msg = "Insufficient parameters to build project files";
-		if (Utils.checkValues(msg, getGenProjectPath(), getGenSourcePath(), getGenPackageName(),
-				getGenAntlrPathname(), getGenJavaPath(), getGenGrammarName())) {
+		if (Utils.checkValues(msg,
+				getGenGrammarName(),
+				getGenPackageName(),
+				getGenProjectPath(),
+				getGenSourcePath(),
+				getGenJavaPath(),
+				getRuleSetPathname()
+				)) {
 			settings.loaded = true;
 		}
 		return settings.loaded;
@@ -459,8 +465,7 @@ public class GenConfig extends ConfigBase {
 	 */
 	public String getGenWorkspacePath() {
 		String name = FilenameUtils.normalizeNoEndSeparator(getGenProjectPath(), true);
-		name = FilenameUtils.getFullPathNoEndSeparator(name);
-		return FilenameUtils.getBaseName(name);
+		return FilenameUtils.getFullPathNoEndSeparator(name);
 	}
 
 	/**
@@ -516,11 +521,7 @@ public class GenConfig extends ConfigBase {
 		}
 	}
 
-	/**
-	 * System path to (and including) the complete Antlr jar
-	 * 
-	 * @return
-	 */
+	/** System path to (and including) the complete Antlr jar */
 	public String getGenAntlrPathname() {
 		return settings.antlrPathname;
 	}
@@ -531,15 +532,23 @@ public class GenConfig extends ConfigBase {
 		}
 	}
 
-	public String getGenProjPathname() {
-		String jar = Utils.findJarPathname(this.getClass());
-		if (jar == null) {
-			jar = Utils.scanClassPath("^.*?genproject-.*?complete.jar");
-			if (jar == null) {
-				Log.warn(this, "Failed to get GenProject jar pathname; inserting dummy pathname");
-				return "C:/Full/path/to/GenProject-2.1-complete.jar";
-			}
+	public String getGenProjJarPathname() {
+		return settings.genProjJarPathname;
+	}
+
+	public void setGenProjJarPathname(String genProjJarPathname) {
+		if (genProjJarPathname != null) {
+			settings.genProjJarPathname = genProjJarPathname;
 		}
-		return jar;
+	}
+
+	public String getGenConfigPathname() {
+		return settings.configPathname;
+	}
+
+	public void setGenConfigPathname(String configPathname) {
+		if (configPathname != null) {
+			settings.configPathname = configPathname;
+		}
 	}
 }

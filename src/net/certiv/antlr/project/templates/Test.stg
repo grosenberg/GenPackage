@@ -17,7 +17,7 @@ AbstractBaseClassVersion() ::= <<
  * 
 >>
 
-AbstractBaseClass(packageName, grammarName) ::= <<
+AbstractBaseClass(packageName, grammarName, startRule) ::= <<
 %hdrBeg()%
 %AbstractBaseClassCopyright()%
 %epl()%
@@ -130,7 +130,7 @@ public abstract class AbstractBase {
 
 	public ParseTree produceTree(CommonTokenStream tokens) {
 		%grammarName%Parser parser = new %grammarName%Parser(tokens);
-		return parser.json();
+		return parser.%startRule%();
 	\}
 
 	protected void checkSymbols(Grammar g, String rulesStr, String allValidTokensStr) throws Exception {

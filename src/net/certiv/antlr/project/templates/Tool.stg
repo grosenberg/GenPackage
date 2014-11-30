@@ -1,21 +1,21 @@
 delimiters "<", ">"
 
-AntlrTool(projectName, sourcePath, packagePath, workspacePath, antlrPathname, javaPath, grammarName) ::= <<
+AntlrTool(antlrPathname, projectName, sourcePath, packagePath, workspacePath, javaPath, grammarName) ::= <<
 @echo off
 rem Execute the Antlr compiler/generator tool
 
 SETLOCAL
 set STARTTIME=%TIME%
 
-set wkspace=D:\\DevFiles\\Java\\WorkSpaces\\Main
+set wkspace=<workspacePath>
 set projectName=<projectName>
-set antlrjar=%wkspace%\\%projectName%\\lib\\antlr-4.4-complete.jar
-set javahome=C:\\Program Files\\Java\\jre7
+set antlrjar=<workspacePath>\\GenProject\\lib\\antlr-4.4-complete.jar
+set javahome=<javaPath>
 set javapgm="%javahome%\\bin\\java"
 
 set CLASSPATH=%antlrjar%;%CLASSPATH%
 
-cd /d %wkspace%\\%projectName%\\<sourcePath>\\net\\certiv\\json\\parser\\gen\\
+cd /d %wkspace%\\%projectName%\\<sourcePath>\\<packagePath>\\parser\\gen\\
 %javapgm% org.antlr.v4.Tool ../<grammarName>Lexer.g4 ../<grammarName>Parser.g4
 
 set ENDTIME=%TIME%
@@ -37,26 +37,30 @@ timeout 4
 
 >>
 
-GenProjectFile(projectName, packageName, workspacePath, sourcePath, packagePath, antlrPathname, genProjPathname, javaPath, grammarName) ::= <<
+GenProjectFile(antlrPathname, projJarPathname, projectName, packageName, workspacePath, sourcePath, packagePath, javaPath, grammarName) ::= <<
 @echo off
 rem Generate the project files
 
 SETLOCAL
 set STARTTIME=%TIME%
 
-set wkspace=D:\\DevFiles\\Java\\WorkSpaces\\Main
-set projectName=<projectName>
-set packageName=<packageName>
-set grammarName=<grammarName>
-set genprjar=%wkspace%\\%projectName%\\lib\\GenProject-2.0-complete.jar
-set antlrjar=%wkspace%\\%projectName%\\lib\\antlr-4.4-complete.jar
-set javahome=C:\\Program Files\\Java\\jre7
+set wkspace=<workspacePath>
+set projectName=TomlTest
+set packageName=net.certiv.toml
+set grammarName=Toml
+
+rem well-known locations
+set ruleSet=%wkspace%\\GenProject\\GenProjectRuleSet.json
+set projConfigFile=%workspace%\\%projectName%\\%grammarName%GenConfig.json
+set genprjar=<workspacePath>\\GenProject\\jars\\GenProject-2.0-complete.jar
+set antlrjar=<workspacePath>\\GenProject\\lib\\antlr-4.4-complete.jar
+set javahome=<javaPath>
 set javapgm="%javahome%\\bin\\java"
 
-set CLASSPATH=%genjar%;%antlrjar%;%CLASSPATH%
+set CLASSPATH=%genprjar%;%antlrjar%;%CLASSPATH%
 
 cd /d %wkspace%
-%javapgm%  net.certiv.antlr.project.gen.GenProject -c -g %grammarName% -n %packageName% -p %wkspace%\\%projectName% -r %wkspace%\\%projectName%
+%javapgm% net.certiv.antlr.project.gen.GenProject -c -g %grammarName% -n %packageName% -p %wkspace%\\%projectName% -r %ruleSet% %projConfigFile% 
 
 set ENDTIME=%TIME%
 set /A STARTTIME=(1%STARTTIME:~6,2%-100)*100 + (1%STARTTIME:~9,2%-100)
