@@ -6,9 +6,9 @@ set STARTTIME=%TIME%
 
 rem edit these 4 values to define a new project
 set wkspace=D:\DevFiles\Java\WorkSpaces\Main
-set projectName=TomlTest
-set packageName=net.certiv.toml
-set grammarName=Toml
+set projectName=net.certiv.j2go
+set packageName=net.certiv.j2go
+set grammarName=Java2Go
 
 rem well-known locations
 set ruleSet=%wkspace%\GenProject\GenProjectRuleSet.json

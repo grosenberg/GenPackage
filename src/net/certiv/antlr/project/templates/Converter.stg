@@ -187,16 +187,18 @@ import %packageName%.parser.%grammarName%ErrorListener;
 import %packageName%.parser.%grammarName%TokenFactory;
 import %packageName%.parser.gen.%grammarName%Lexer;
 import %packageName%.parser.gen.%grammarName%Parser;
+import %packageName%.parser.gen.%grammarName%Parser.%grammarName%Context;
 import %packageName%.util.Log;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 public class Converter {
 
 	private IOProcessor processor;
+	private PhaseState state;
+	private String lastError = "<none>";
 
 	public Converter(IOProcessor processor) {
 		super();
@@ -208,56 +210,66 @@ public class Converter {
 	\}
 
 	public String convert(String srcData, PhaseState state) {
-		String lastError = "<none>";
+		this.state = state;
 		try {
-			lastError = "Failure in acquiring input stream.";
-			ByteArrayInputStream is = new ByteArrayInputStream(srcData.getBytes());
-			ANTLRInputStream input = new ANTLRInputStream(is);
-
-			lastError = "Failure in generating lexer token stream.";
-			%grammarName%Lexer lexer = new %grammarName%Lexer(input);
-			// lexer.setLexerHelper(new LexerHelper());
-			%grammarName%TokenFactory factory = new %grammarName%TokenFactory(input);
-			lexer.setTokenFactory(factory);
-			CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-			lastError = "Failure in parser production.";
-			%grammarName%Parser parser = new %grammarName%Parser(tokens);
-			parser.setTokenFactory(factory);
-			parser.removeErrorListeners(); // remove ConsoleErrorListener
-			parser.addErrorListener(new %grammarName%ErrorListener());
-			// parser.setErrorHandler(new %grammarName%ParserErrorStrategy());
-			ParseTree tree = parser.%startRule%();
-
+			%grammarName%Context tree = parse(srcData);
 			ParseTreeWalker walker = new ParseTreeWalker();
-
-			lastError = "Failure in parse phase 1.";
-			state.tokens = tokens;
-			%grammarName%Phase01 phase01 = new %grammarName%Phase01(state, processor);
-			phase01.collectComments(true);
-			walker.walk(phase01, tree);
-
-			lastError = "Failure in parse phase 2.";
-			%grammarName%Phase02 phase02 = new %grammarName%Phase02(phase01, processor);
-			walker.walk(phase02, tree);
-
-			if (!%grammarName%Phase02.statusResolved) {
-				Log.warn(this, "Failure to resolve source description");
-				return "";
-			\}
-
-			lastError = "Failure in parse phase 3.";
-			%grammarName%Phase03 phase03 = new %grammarName%Phase03(phase02, processor);
-			walker.walk(phase03, tree);
-			Log.info(this, "Convertion complete.");
-
+			%grammarName%Phase01 phase01 = processPhase01(tree, walker);
+			%grammarName%Phase02 phase02 = processPhase02(tree, walker, phase01);
+			/* %grammarName%Phase03 phase03 = */processPhase03(tree, walker, phase02);
 			Log.info(this, "Convertion complete.");
 			return state.doc.toString();
-
 		\} catch (IOException e) {
 			Log.error(this, lastError, e);
 			return "";
 		\}
+	\}
+
+	private %grammarName%Context parse(String srcData) throws IOException {
+		lastError = "Failure in acquiring input stream.";
+		ByteArrayInputStream is = new ByteArrayInputStream(srcData.getBytes());
+		ANTLRInputStream input = new ANTLRInputStream(is);
+
+		lastError = "Failure in generating lexer token stream.";
+		%grammarName%Lexer lexer = new %grammarName%Lexer(input);
+		%grammarName%TokenFactory factory = new %grammarName%TokenFactory(input);
+		lexer.setTokenFactory(factory);
+		CommonTokenStream tokens = new CommonTokenStream(lexer);
+		state.tokens = tokens;
+
+		lastError = "Failure in parser production.";
+		%grammarName%Parser parser = new %grammarName%Parser(tokens);
+		parser.setTokenFactory(factory);
+		parser.removeErrorListeners(); // remove ConsoleErrorListener
+		parser.addErrorListener(new %grammarName%ErrorListener());
+		// parser.setErrorHandler(new %grammarName%ParserErrorStrategy());
+		return parser.%startRule%();
+
+	\}
+
+	private %grammarName%Phase01 processPhase01(%grammarName%Context tree, ParseTreeWalker walker) {
+		lastError = "Failure in parse phase 1.";
+		%grammarName%Phase01 phase01 = new %grammarName%Phase01(state, processor);
+		phase01.collectComments(true);
+		walker.walk(phase01, tree);
+		return phase01;
+	\}
+
+	private %grammarName%Phase02 processPhase02(%grammarName%Context tree, ParseTreeWalker walker, %grammarName%Phase01 phase01) {
+		lastError = "Failure in parse phase 2.";
+		%grammarName%Phase02 phase02 = new %grammarName%Phase02(phase01, processor);
+		walker.walk(phase02, tree);
+		if (!%grammarName%Phase02.statusResolved) {
+			Log.warn(this, "Failure to resolve source description in phase2");
+		\}
+		return phase02;
+	\}
+
+	private %grammarName%Phase03 processPhase03(%grammarName%Context tree, ParseTreeWalker walker, %grammarName%Phase02 phase02) {
+		lastError = "Failure in parse phase 3.";
+		%grammarName%Phase03 phase03 = new %grammarName%Phase03(phase02, processor);
+		walker.walk(phase03, tree);
+		return phase03;
 	\}
 \}
 

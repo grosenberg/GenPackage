@@ -377,8 +377,8 @@ public class Reflect {
 		return null;
 	\}
 
-	public static Map<String, Class<?>> declaredClasses(Object target) {
-		Map<String, Class<?>> classNames = new HashMap<>();
+	public static Map<String, Class<?\>> declaredClasses(Object target) {
+		Map<String, Class<?\>> classNames = new HashMap<>();
 		for (Class<?> c : target.getClass().getDeclaredClasses()) {
 			classNames.put(c.getSimpleName(), c);
 		\}

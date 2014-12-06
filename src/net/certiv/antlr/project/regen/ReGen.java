@@ -242,6 +242,8 @@ public class ReGen {
 			if (!tmpl.lDelim.equals(tmpl.rDelim)) {
 				content = content.replace(tmpl.rDelim, "\\" + tmpl.rDelim);
 			}
+			// escape double right angles to avoid confusion with template terminal
+			content = content.replace(">>", "\\>>");
 
 			if (unit.literal) {
 				content += tmpl.lDelim + unit.unitName + "(";
