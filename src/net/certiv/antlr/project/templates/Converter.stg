@@ -197,7 +197,6 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 public class Converter {
 
 	private IOProcessor processor;
-	private PhaseState state;
 	private String lastError = "<none>";
 
 	public Converter(IOProcessor processor) {
@@ -210,22 +209,21 @@ public class Converter {
 	\}
 
 	public String convert(String srcData, PhaseState state) {
-		this.state = state;
 		try {
-			%grammarName%Context tree = parse(srcData);
+			%grammarName%Context tree = parse(srcData, state);
 			ParseTreeWalker walker = new ParseTreeWalker();
-			%grammarName%Phase01 phase01 = processPhase01(tree, walker);
+			%grammarName%Phase01 phase01 = processPhase01(tree, walker, state);
 			%grammarName%Phase02 phase02 = processPhase02(tree, walker, phase01);
-			/* %grammarName%Phase03 phase03 = */processPhase03(tree, walker, phase02);
+			%grammarName%Phase03 phase03 = processPhase03(tree, walker, phase02);
 			Log.info(this, "Convertion complete.");
-			return state.doc.toString();
+			return phase03.state.toString();
 		\} catch (IOException e) {
 			Log.error(this, lastError, e);
 			return "";
 		\}
 	\}
 
-	private %grammarName%Context parse(String srcData) throws IOException {
+	private %grammarName%Context parse(String srcData, PhaseState state) throws IOException {
 		lastError = "Failure in acquiring input stream.";
 		ByteArrayInputStream is = new ByteArrayInputStream(srcData.getBytes());
 		ANTLRInputStream input = new ANTLRInputStream(is);
@@ -247,7 +245,7 @@ public class Converter {
 
 	\}
 
-	private %grammarName%Phase01 processPhase01(%grammarName%Context tree, ParseTreeWalker walker) {
+	private %grammarName%Phase01 processPhase01(%grammarName%Context tree, ParseTreeWalker walker, PhaseState state) {
 		lastError = "Failure in parse phase 1.";
 		%grammarName%Phase01 phase01 = new %grammarName%Phase01(state, processor);
 		phase01.collectComments(true);
