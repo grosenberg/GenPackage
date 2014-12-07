@@ -51,6 +51,13 @@ public class Scope {
 		this.enclosingScope = enclosingScope;
 	\}
 
+	/** Define a new variable in the current scope */
+	public void define(String name, ArrayList<String> parameters) {
+		String params = Strings.asString(parameters, true, ".");
+		Symbol symbol = new Symbol(null, name + params, null);
+		define(symbol);
+	\}
+
 	/** Define a symbol in the current scope */
 	public void define(Symbol symbol) {
 		symbol.setScope(this);
