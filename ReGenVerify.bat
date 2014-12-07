@@ -4,20 +4,20 @@ rem Generate the project files
 SETLOCAL
 set STARTTIME=%TIME%
 
-set wkspace=D:\DevFiles\Java\WorkSpaces\Main
+set workspace=D:\DevFiles\Java\WorkSpaces\Main
 set projectName=JsonProject
 set packageName=net.certiv.json
 set grammarName=Json
 
 rem Well-known locations
-set ruleSet=%wkspace%\GenProject\GenProjectRuleSet.json
-set genprjar=%wkspace%\GenProject\jars\GenProject-2.0-complete.jar
+set ruleSet=%workspace%\GenProject\GenProjectRuleSet.json
+set genprjar=%workspace%\GenProject\jars\GenProject-2.0-complete.jar
 set javahome=C:\Program Files\Java\jre7
 set javapgm="%javahome%\bin\java"
 
 set CLASSPATH=%genprjar%;%CLASSPATH%
 
-cd /d %wkspace%
+cd /d %workspace%
 %javapgm% net.certiv.antlr.project.regen.ReGen -v -d %ruleSet%
 
 set ENDTIME=%TIME%

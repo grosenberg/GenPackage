@@ -107,7 +107,7 @@ public class GenProject {
 		if (!funcs.generatedParserExists() && opts.flagDescriptors()) return;
 
 		// create/validate directory structure & generate project
-		if (opts.flagCreate() || opts.flagDescriptors()) {
+		if (opts.flagCreate() || opts.flagDescriptors() || opts.flagUnitType()) {
 			if (!funcs.createDirs()) {
 				Log.error(this, "Failure in directory structure creation");
 				return;

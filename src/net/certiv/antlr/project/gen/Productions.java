@@ -193,6 +193,14 @@ public class Productions {
 
 		} else if (opts.flagDescriptors()) {
 			if (generatedParserExists()) types.add(TypeOf.descriptor);
+		} else if (opts.flagUnitType()) {
+			try {
+				TypeOf requested = TypeOf.valueOf(opts.valUnitType());
+				types.add(requested);
+			} catch (Exception e) {
+				Log.error(this, "Not a valid 'unit type' identifier: " + opts.valUnitType());
+				return false;
+			}
 		}
 
 		Map<String, Unit> units = config.getRuleSet().units;

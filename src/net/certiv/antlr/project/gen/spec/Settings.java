@@ -51,4 +51,13 @@ public class Settings {
 	public String configPathname; // system pathname for config Json file
 
 	public transient boolean loaded = false;
+
+	@Override
+	public String toString() {
+		return "Settings [magicId=" + magicId + ", grammarName=" + grammarName + ", packageName=" + packageName
+				+ ", projectPath=" + projectPath + ", sourcePath=" + sourcePath + ", testPath=" + testPath
+				+ ", javaPath=" + javaPath + ", antlrPathname=" + antlrPathname + ", genProjJarPathname="
+				+ genProjJarPathname + ", rulesPathname=" + rulesPathname + ", configPathname=" + configPathname
+				+ ", loaded=" + loaded + "]";
+	}
 }

@@ -5,13 +5,13 @@ SETLOCAL
 set STARTTIME=%TIME%
 
 rem edit these 4 values to define a new project
-set wkspace=D:\DevFiles\Java\WorkSpaces\Main
+set workspace=D:\DevFiles\Java\WorkSpaces\Main
 set projectName=net.certiv.j2go
 set packageName=net.certiv.j2go
 set grammarName=Java2Go
 
 rem well-known locations
-set ruleSet=%wkspace%\GenProject\GenProjectRuleSet.json
+set ruleSet=%workspace%\GenProject\GenProjectRuleSet.json
 set projConfigFile=%workspace%\%projectName%\%grammarName%GenConfig.json
 set genprjar=D:\DevFiles\Java\WorkSpaces\Main\GenProject\jars\GenProject-2.0-complete.jar
 set antlrjar=D:\DevFiles\Java\WorkSpaces\Main\GenProject\lib\antlr-4.4-complete.jar
@@ -20,8 +20,8 @@ set javapgm="%javahome%\bin\java"
 
 set CLASSPATH=%genprjar%;%antlrjar%;%CLASSPATH%
 
-cd /d %wkspace%
-%javapgm% net.certiv.antlr.project.gen.GenProject -i -g %grammarName% -n %packageName% -p %wkspace%\%projectName% -r %ruleSet% 
+cd /d %workspace%
+%javapgm% net.certiv.antlr.project.gen.GenProject -i -g %grammarName% -n %packageName% -p %workspace%\%projectName% -r %ruleSet% 
 
 set ENDTIME=%TIME%
 set /A STARTTIME=(1%STARTTIME:~6,2%-100)*100 + (1%STARTTIME:~9,2%-100)

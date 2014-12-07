@@ -35,16 +35,18 @@ public class GenOptions {
 		options = new Options();
 
 		// data arguments
-		options.addOption("n", "package", true, "package name");
-		options.addOption("g", "grammar", true, "grammar name");
-		options.addOption("p", "project", true, "system path to project directory");
-		options.addOption("s", "source", true, "internal path to the project source directory");
-		options.addOption("t", "test", true, "internal path to the project test directory");
-		options.addOption("j", "java", true, "system path to java home directory");
 		options.addOption("a", "antlr", true, "system path to the antlr jar");
 		options.addOption("e", "genpr", true, "system path to the GenProject jar");
-		options.addOption("r", "rulesPathname", true, "system path to the project rule set");
+		options.addOption("g", "grammar", true, "grammar name");
+		options.addOption("j", "java", true, "system path to java home directory");
+		options.addOption("n", "package", true, "package name");
 		options.addOption("o", "configPathname", true, "system path to the project configuration file");
+		options.addOption("p", "project", true, "system path to project directory");
+		options.addOption("r", "rulesPathname", true, "system path to the project rule set");
+		options.addOption("s", "source", true, "internal path to the project source directory");
+		options.addOption("t", "test", true, "internal path to the project test directory");
+
+		options.addOption("u", "test", true, "generate a named unit type");
 
 		// procedurals
 		options.addOption("i", "initialize", false, "initialize new project");
@@ -158,6 +160,14 @@ public class GenOptions {
 
 	public String valAntlrPathname() {
 		return value("a");
+	}
+
+	public boolean flagUnitType() {
+		return cli.hasOption("u");
+	}
+
+	public String valUnitType() {
+		return value("u");
 	}
 
 	public String valGenProjectJarPathname() {
