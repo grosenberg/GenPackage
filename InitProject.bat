@@ -6,15 +6,15 @@ set STARTTIME=%TIME%
 
 rem edit these 4 values to define a new project
 set workspace=D:\DevFiles\Java\WorkSpaces\Main
-set projectName=net.certiv.j2go
-set packageName=net.certiv.j2go
-set grammarName=Java2Go
+set projectName=net.certiv.test
+set packageName=net.certiv.test
+set grammarName=Test
 
 rem well-known locations
 set ruleSet=%workspace%\GenProject\GenProjectRuleSet.json
 set projConfigFile=%workspace%\%projectName%\%grammarName%GenConfig.json
 set genprjar=D:\DevFiles\Java\WorkSpaces\Main\GenProject\jars\GenProject-2.0-complete.jar
-set antlrjar=D:\DevFiles\Java\WorkSpaces\Main\GenProject\lib\antlr-4.4-complete.jar
+set antlrjar=D:\DevFiles\Java\WorkSpaces\Main\GenProject\lib\antlr-4.5-complete.jar
 set javahome=C:\Program Files\Java\jre7
 set javapgm="%javahome%\bin\java"
 

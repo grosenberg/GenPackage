@@ -22,7 +22,7 @@ AccessMethods(contextMethods) ::= <<
 AccessMethod(method) ::= <<
 	public %method.retClass% %method.presName%() {
 %if(method.list)%
-		if (context().%method.callName%%method.callType% != null && context().%method.callName%%method.callType%.size() == 0) return null;
+		if (context().%method.callName%%method.callType% == null || context().%method.callName%%method.callType%.size() == 0) return null;
 %endif%
 		return context().%method.callName%%method.callType%;
 	}
