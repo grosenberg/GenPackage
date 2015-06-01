@@ -9,8 +9,8 @@ set STARTTIME=%TIME%
 
 set wkspace=<workspacePath>
 set projectName=<projectName>
-set antlrjar=<workspacePath>\\GenProject\\lib\\antlr-4.4-complete.jar
-set javahome=<javaPath>
+set antlrjar=<workspacePath>\\GenProject\\lib\\antlr-4.5-complete.jar
+set javahome=C:\\Program Files\\Java\\jre7
 set javapgm="%javahome%\\bin\\java"
 
 set CLASSPATH=%antlrjar%;%CLASSPATH%
@@ -52,8 +52,8 @@ set grammarName=Toml
 rem well-known locations
 set ruleSet=%workspace%\\GenProject\\GenProjectRuleSet.json
 set projConfigFile=%workspace%\\%projectName%\\%grammarName%GenConfig.json
-set genprjar=<workspacePath>\\GenProject\\jars\\GenProject-2.0-complete.jar
-set antlrjar=<workspacePath>\\GenProject\\lib\\antlr-4.4-complete.jar
+set genprjar=<workspacePath>\\GenProject\\jars\\GenProject-2.1-complete.jar
+set antlrjar=<workspacePath>\\GenProject\\lib\\antlr-4.5-complete.jar
 set javahome=<javaPath>
 set javapgm="%javahome%\\bin\\java"
 

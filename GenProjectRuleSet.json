@@ -53,6 +53,25 @@
             "version": true,
             "templateGroup": "Converter"
         },
+        "FileUtils": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.util",
+            "modelFilename": "FileUtils.java",
+            "unitName": "FileUtilsClass",
+            "primary": true,
+            "unitType": "util",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": epl,
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Util"
+        },
         "Log": {
             "modelRoot": "src",
             "modelPackage": "net.certiv.json.util",
@@ -1219,11 +1238,11 @@
             "version": false,
             "templateGroup": "Xml"
         },
-        "antlr-4.4-complete": {
+        "antlr-4.5-complete": {
             "modelRoot": "lib",
             "modelPackage": "",
-            "modelFilename": "antlr-4.4-complete.jar",
-            "unitName": "antlr-4.4-complete",
+            "modelFilename": "antlr-4.5-complete.jar",
+            "unitName": "antlr-4.5-complete",
             "primary": true,
             "unitType": "binary",
             "templateVars": [],
@@ -1393,7 +1412,7 @@
             "vType": "MatchVar",
             "source": null,
             "select": null,
-            "search": "D:\\DevFiles\\Java\\WorkSpaces\\Main\\GenProjectlib\\antlr-4.4-complete.jar",
+            "search": "D:\\DevFiles\\Java\\WorkSpaces\\Main\\GenProjectlib\\antlr-4.5-complete.jar",
             "replace": null,
             "marker": null
         },
@@ -1411,7 +1430,7 @@
             "vType": "MatchVar",
             "source": null,
             "select": null,
-            "search": "C:\\Program Files\\Java\\jre7",
+            "search": "C:\\Program Files\\Java\\jre1.8",
             "replace": null,
             "marker": null
         }

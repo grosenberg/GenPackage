@@ -4,18 +4,18 @@ import "D:\DevFiles\Java\WorkSpaces\Main\GenProject\src\net\certiv\antlr\project
 
 BaseDescriptorClassCopyright() ::= <<
  * Copyright (c) 2008-2014 G Rosenberg.
- *
+ * 
 >>
 
 BaseDescriptorClassContributor() ::= <<
  *		G Rosenberg - initial API and implementation
- *
+ * 
 >>
 
 BaseDescriptorClassVersion() ::= <<
  * 		1.0 - 2014.03.26: First release level code
  * 		1.1 - 2014.08.26: Updates, add Tests support
- *
+ * 
 >>
 
 BaseDescriptorClass(packageName, grammarName) ::= <<
@@ -63,8 +63,6 @@ public abstract class BaseDescriptor implements IDescriptor {
 
 	// Helpers are in PhaseBase
 	public boolean collectComments = false;
-	public String commentLeft;
-	public String commentRight;
 
 	// BaseDescriptor Helpers /////////////////////
 
@@ -79,6 +77,8 @@ public abstract class BaseDescriptor implements IDescriptor {
 	public BaseDescriptor getDescriptor(ParseTree ctx) {
 		return state.nodeContextMap.get(ctx);
 	\}
+
+	public abstract String content(boolean enter);
 
 	@Override
 	public void initialize() {
@@ -113,11 +113,19 @@ public abstract class BaseDescriptor implements IDescriptor {
 	public String toString() {
 		String strValue = value.toString() != null ? value.toString() : "<Null Value>";
 		if (collectComments) {
-			return commentLeft + strValue + Strings.SP + commentRight;
+			return getLeftComment() + strValue + Strings.SP + getRightComment();
 		\} else {
 			return strValue;
 		\}
 	\}
+
+	public abstract void setLeftComment(String comment);
+
+	public abstract void setRightComment(String comment);
+
+	public abstract String getLeftComment();
+
+	public abstract String getRightComment();
 
 	// Symbol Table Helpers ///////////////////////////
 
@@ -243,18 +251,18 @@ public abstract class BaseDescriptor implements IDescriptor {
 
 DescriptorClassCopyright() ::= <<
  * Copyright (c) 2008-2014 G Rosenberg.
- *
+ * 
 >>
 
 DescriptorClassContributor() ::= <<
  *		G Rosenberg - initial API and implementation
- *
+ * 
 >>
 
 DescriptorClassVersion() ::= <<
  * 		1.0 - 2014.03.26: First release level code
  * 		1.1 - 2014.08.26: Updates, add Tests support
- *
+ * 
 >>
 
 DescriptorClass(packageName) ::= <<
@@ -272,24 +280,61 @@ DescriptorClass(packageName) ::= <<
 package %packageName%.converter.descriptors;
 
 import java.util.List;
-import org.antlr.v4.runtime.Token;
+
 import org.antlr.v4.runtime.tree.TerminalNode;
+
 import %packageName%.converter.BaseDescriptor;
 import %packageName%.converter.Value;
+import %packageName%.parser.gen.JsonParser.ArrayContext;
+import %packageName%.parser.gen.JsonParser.ValueContext;
 
 
 >>
 
 ImportNamedContextsLiteral(packageName, grammarName, namedContexts) ::= <<
-// Generated imports
+// Generated imports 
 %ImportNamedContexts(packageName, grammarName, namedContexts)%
 >>
 
 DescriptorBody(contextName) ::= <<
 public class %contextName%Descriptor extends BaseDescriptor {
 
+	public String commentLeft = "";
+	public String commentRight = "";
+
 	public %contextName%Descriptor(%contextName%Context ctx) {
 		super(ctx);
+	\}
+
+	@Override
+	public String content(boolean enter) {
+		StringBuilder sb = new StringBuilder();
+		if (enter) {
+			sb.append(commentLeft);
+		\} else {
+			sb.append(commentRight);
+		\}
+		return sb.toString();
+	\}
+
+	@Override
+	public void setLeftComment(String comment) {
+		this.commentLeft = comment;
+	\}
+
+	@Override
+	public void setRightComment(String comment) {
+		this.commentRight = comment;
+	\}
+
+	@Override
+	public String getLeftComment() {
+		return commentLeft;
+	\}
+
+	@Override
+	public String getRightComment() {
+		return commentRight;
 	\}
 
 	@Override
@@ -305,7 +350,7 @@ public class %contextName%Descriptor extends BaseDescriptor {
 		return value;
 	\}
 
-
+	
 >>
 
 AccessMethodsLiteral(contextMethods) ::= <<

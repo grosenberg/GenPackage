@@ -11,8 +11,8 @@ set grammarName=Json
 
 rem Well-known locations
 set ruleSet=%workspace%\GenProject\GenProjectRuleSet.json
-set genprjar=%workspace%\GenProject\jars\GenProject-2.0-complete.jar
-set javahome=C:\Program Files\Java\jre7
+set genprjar=%workspace%\GenProject\jars\GenProject-2.1-complete.jar
+set javahome=C:\Program Files\Java\jre1.8
 set javapgm="%javahome%\bin\java"
 
 set CLASSPATH=%genprjar%;%CLASSPATH%
