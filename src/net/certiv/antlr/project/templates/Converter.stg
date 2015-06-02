@@ -142,8 +142,19 @@ public interface IDescriptor {
 
 	public Value process();
 
-	public String toString();
+	public void setCollectComments(boolean collect);
 
+	public boolean getCollectComments();
+
+	public void setLeftComment(String comment);
+
+	public void setRightComment(String comment);
+
+	public String getLeftComment();
+
+	public String getRightComment();
+
+	public String toString();
 \}
 
 
