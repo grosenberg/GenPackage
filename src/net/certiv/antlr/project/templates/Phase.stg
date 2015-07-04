@@ -328,16 +328,16 @@ Phase03MethodSet(contextName) ::= <<
 		state.symTable.pushScope();
 		Log.debug(this, "Phase " + phase + ": New local scope");
 		%contextName%Descriptor descriptor = (%contextName%Descriptor) getDescriptor(ctx);
-		descriptor.process();
+		descriptor.processOnEntry();
 	\}
 
 	@Override
 	public void exit%contextName%(%contextName%Context ctx) {
 		super.exit%contextName%(ctx);
 		%contextName%Descriptor descriptor = (%contextName%Descriptor) getDescriptor(ctx);
-		descriptor.process();
+		descriptor.processOnExit();
 		state.symTable.popScope();
-	
+
 		String name = Reflect.simpleClassName(descriptor);
 		Log.debug(this, "Phase " + phase + ": " + name + " processed (resolved: " + descriptor.resolved + ")");
 	\}

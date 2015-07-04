@@ -1338,7 +1338,7 @@
             ],
             "parts": [],
             "literal": false,
-            "license": epl,
+            "license": "epl",
             "copyright": true,
             "contributor": true,
             "description": false,
@@ -1358,12 +1358,31 @@
             ],
             "parts": [],
             "literal": false,
-            "license": epl,
+            "license": "epl",
             "copyright": true,
             "contributor": true,
             "description": false,
             "version": true,
             "templateGroup": "Test"
+        },
+        "Json": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.converter",
+            "modelFilename": "Json.java",
+            "unitName": "JsonClass",
+            "primary": true,
+            "unitType": "state",
+            "templateVars": [
+            	"packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": epl,
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "State"
         }
     },
     "variables": {
