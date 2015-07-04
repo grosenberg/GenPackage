@@ -65,7 +65,7 @@
             ],
             "parts": [],
             "literal": false,
-            "license": epl,
+            "license": "epl",
             "copyright": true,
             "contributor": true,
             "description": false,
@@ -1305,6 +1305,65 @@
             "description": false,
             "version": false,
             "templateGroup": ""
+        },
+        "ToStringStyle": {
+            "modelRoot": "src",
+            "modelPackage": "net.certiv.json.types",
+            "modelFilename": "ToStringStyle.java",
+            "unitName": "ToStringStyleClass",
+            "primary": true,
+            "unitType": "symbol",
+            "templateVars": [
+                "packageName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": "epl",
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "State"
+        },
+        "TestBulk": {
+            "modelRoot": "test",
+            "modelPackage": "net.certiv.json.bulk",
+            "modelFilename": "TestBulk.java",
+            "unitName": "TestBulkClass",
+            "primary": true,
+            "unitType": "test",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": epl,
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Test"
+        },
+        "TestIOProcessor": {
+            "modelRoot": "test",
+            "modelPackage": "net.certiv.json.bulk",
+            "modelFilename": "TestIOProcessor.java",
+            "unitName": "TestIOProcessorClass",
+            "primary": true,
+            "unitType": "test",
+            "templateVars": [
+                "packageName",
+                "grammarName"
+            ],
+            "parts": [],
+            "literal": false,
+            "license": epl,
+            "copyright": true,
+            "contributor": true,
+            "description": false,
+            "version": true,
+            "templateGroup": "Test"
         }
     },
     "variables": {

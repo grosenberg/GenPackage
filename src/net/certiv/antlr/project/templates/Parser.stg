@@ -31,18 +31,17 @@ $hdrBlankLn()$
 $hdrEnd()$
 package $packageName$.parser;
 
-import java.util.Collections;
 import java.util.List;
 
-import $packageName$.parser.gen.$grammarName$Lexer;
-import $packageName$.util.Log;
-
 import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenStream;
+
+import $packageName$.parser.gen.$grammarName$Lexer;
+import $packageName$.util.Log;
 
 public class $grammarName$ErrorListener extends BaseErrorListener {
 
@@ -54,7 +53,8 @@ public class $grammarName$ErrorListener extends BaseErrorListener {
 
 		Parser parser = (Parser) recognizer;
 		String name = parser.getSourceName();
-		TokenStream tokens = parser.getInputStream();
+		CommonTokenStream tokens = (CommonTokenStream) parser.getInputStream();
+		tokens.fill();
 
 		Token offSymbol = (Token) offendingSymbol;
 		int thisError = offSymbol.getTokenIndex();
@@ -62,22 +62,26 @@ public class $grammarName$ErrorListener extends BaseErrorListener {
 			Log.debug(this, name + ": Incorrect error: " + msg);
 			return;
 		\}
+
 		String offSymName = $grammarName$Lexer.VOCABULARY.getSymbolicName(offSymbol.getType());
+		List<String> stack = parser.getRuleInvocationStack();
+		// Collections.reverse(stack);
+
+		Log.error(this, name);
+		Log.error(this, "Rule stack: " + stack);
+		Log.error(this, "At line " + line + ":" + charPositionInLine + " at " + offSymName + ": " + msg);
+		Log.error(this, "Expecting: " + parser.getExpectedTokens().toString($grammarName$Lexer.VOCABULARY));
+
 		if (thisError > lastError + 10) {
 			lastError = thisError - 10;
 		\}
-		for (int idx = lastError + 1; idx <= thisError; idx++) {
+		int leadError = thisError + 10 < tokens.size() ? thisError + 10 : tokens.size() - thisError;
+
+		for (int idx = lastError + 1; idx < leadError; idx++) {
 			Token token = tokens.get(idx);
-			if (token.getChannel() != Token.HIDDEN_CHANNEL)
-				Log.error(this, name + ":" + token.toString());
+			if (token.getChannel() != Token.HIDDEN_CHANNEL) Log.error(this, token.toString());
 		\}
 		lastError = thisError;
-
-		List<String> stack = parser.getRuleInvocationStack();
-		Collections.reverse(stack);
-
-		Log.error(this, name + " rule stack: " + stack);
-		Log.error(this, name + " line " + line + ":" + charPositionInLine + " at " + offSymName + ": " + msg);
 	\}
 \}
 
@@ -521,32 +525,31 @@ $hdrBlankLn()$
 $hdrEnd()$
 package $packageName$.parser;
 
-import java.util.Formatter;
-
-import $packageName$.parser.gen.$grammarName$Lexer;
-import $packageName$.util.Strings;
-
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenSource;
 import org.antlr.v4.runtime.misc.Pair;
+
+import $packageName$.parser.gen.$grammarName$Lexer;
+import $packageName$.types.ToStringStyle;
 
 @SuppressWarnings("serial")
 public class $grammarName$Token extends CommonToken {
 
-	public static final boolean FULL = true;
-	public static final boolean BASIC = false;
-
-	private boolean tss = FULL; // defines the toString style
+	private ToStringStyle tss = ToStringStyle.BASIC;
 
 	// Lexer mode
 	private int _mode;
-
 	private boolean hasStyles;
 	private boolean hasBody;
 
 	public $grammarName$Token(int type, String text) {
 		super(type, text);
+	\}
+
+	public $grammarName$Token(Token prior) {
+		super(prior);
 	\}
 
 	public $grammarName$Token(Pair<TokenSource, CharStream> source, int type, int channel, int start, int stop) {
@@ -555,6 +558,14 @@ public class $grammarName$Token extends CommonToken {
 
 	public void setMode(int mode) {
 		_mode = mode;
+	\}
+
+	public void toStringStyle(ToStringStyle tss) {
+		this.tss = tss;
+	\}
+
+	private boolean isFull() {
+		return tss == ToStringStyle.FULL;
 	\}
 
 	public void styles(boolean hasStyles) {
@@ -578,18 +589,16 @@ public class $grammarName$Token extends CommonToken {
 		return Character.isUpperCase(c);
 	\}
 
-	public void toStringStyle(boolean full) {
-		this.tss = full;
-	\}
-
 	@Override
 	public String toString() {
-		String chanStr = "chan=" + channel;
-		if (channel == 0) chanStr = tss ? "chan=Default" : "";
-		if (channel == 1) chanStr = tss ? "chan=Hidden" : "Hidden";
+		if (tss == ToStringStyle.MIN) return super.toString();
 
-		String modeStr = (tss ? "mode=" : "") + $grammarName$Lexer.modeNames[_mode];
-		if (_mode == 0) modeStr = tss ? "mode=Default" : "";
+		String chanStr = "chan=" + channel;
+		if (channel == 0) chanStr = isFull() ? "chan=Default" : "";
+		if (channel == 1) chanStr = isFull() ? "chan=Hidden" : "Hidden";
+
+		String modeStr = (isFull() ? "mode=" : "") + $grammarName$Lexer.modeNames[_mode];
+		if (_mode == 0) modeStr = isFull() ? "mode=Default" : "";
 
 		String mcStr = chanStr + " " + modeStr;
 		mcStr = mcStr.trim();
@@ -602,24 +611,11 @@ public class $grammarName$Token extends CommonToken {
 		\} else {
 			txt = "<no text>";
 		\}
-
 		String tokenName = $grammarName$Lexer.VOCABULARY.getSymbolicName(type);
-
-		String s = hasStyles ? "S" : "_";
-		String b = hasBody ? "B" : "_";
-		String t = isTag() ? "T" : "_";
-
-		@SuppressWarnings("resource")
-		Formatter fmt = new Formatter();
-		if (tss) {
-			fmt.format("[@%-2d %2d:%-2d <%d-%d> (%d) %s %s %s='%s']",
-					getTokenIndex(), line, getCharPositionInLine(), start, stop,
-					type, s + b + t, mcStr, tokenName, txt);
-		\} else {
-			fmt.format("[@%-2d %2d:%-2d %s='%s' %s]",
-					getTokenIndex(), line, getCharPositionInLine(), tokenName, txt, mcStr);
-		\}
-		return fmt.toString() + Strings.eol;
+		return "[@" + getTokenIndex() + ", <" + start + ":" + stop + "> "
+				+ tokenName + "(" + type + ")='" + txt + "'"
+				+ ", " + chanStr + ", " + modeStr
+				+ ", " + line + ":" + getCharPositionInLine() + "]";
 	\}
 \}
 
@@ -656,24 +652,43 @@ $hdrBlankLn()$
 $hdrEnd()$
 package $packageName$.parser;
 
-import $packageName$.parser.gen.$grammarName$Lexer;
-
 import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenFactory;
 import org.antlr.v4.runtime.TokenSource;
 import org.antlr.v4.runtime.misc.Pair;
 
+import $packageName$.parser.gen.$grammarName$Lexer;
+import $packageName$.types.ToStringStyle;
+
 public class $grammarName$TokenFactory implements TokenFactory<$grammarName$Token> {
 
 	public CharStream input;
+	public ToStringStyle style;
 
 	public $grammarName$TokenFactory(CharStream input) {
 		this.input = input;
+		this.style = ToStringStyle.FULL;
+	\}
+
+	public void toStringStyle(ToStringStyle style) {
+		this.style = style;
+	\}
+
+	public $grammarName$Token create(Token prior, int type, String text) {
+		$grammarName$Token token = new $grammarName$Token(prior);
+		token.setType(type);
+		token.setText(text);
+		token.setChannel(Token.DEFAULT_CHANNEL);
+		token.toStringStyle(style);
+		return token;
 	\}
 
 	@Override
 	public $grammarName$Token create(int type, String text) {
-		return new $grammarName$Token(type, text);
+		$grammarName$Token token = new $grammarName$Token(type, text);
+		token.toStringStyle(style);
+		return token;
 	\}
 
 	@Override
@@ -684,6 +699,7 @@ public class $grammarName$TokenFactory implements TokenFactory<$grammarName$Toke
 		token.setCharPositionInLine(charPositionInLine);
 		TokenSource tsrc = token.getTokenSource();
 		token.setMode((($grammarName$Lexer) tsrc)._mode);
+		token.toStringStyle(style);
 		return token;
 	\}
 \}
@@ -721,9 +737,7 @@ $hdrBlankLn()$
 $hdrEnd()$
 package $packageName$.parser;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.IntStream;
 import org.antlr.v4.runtime.Lexer;
 
 public abstract class LexerAdaptor extends Lexer {
@@ -732,73 +746,6 @@ public abstract class LexerAdaptor extends Lexer {
 		super(input);
 	\}
 
-	public boolean norLA(String... terminals) {
-		ANTLRInputStream input = (ANTLRInputStream) getInputStream();
-
-		for (String str : terminals) {
-			int index = 0;
-			for (int idx = 0; idx < str.length(); idx++) {
-				if (input.LA(index + 1) == IntStream.EOF) {
-					break;
-				\}
-				char s = str.charAt(idx);
-				char la = (char) input.LA(index + 1);
-				if (s != la) {
-					break;
-				\}
-				index++;
-			\}
-			if (index == str.length()) {
-				return false;
-			\}
-		\}
-		return true;
-	\}
-
-	public boolean anyLB(String... terminals) {
-		return !norLB(terminals);
-	\}
-
-	public boolean norLB(String... terminals) {
-		ANTLRInputStream input = (ANTLRInputStream) getInputStream();
-
-		for (String str : terminals) {
-			int index = 0;
-			for (int idx = str.length() - 1; idx >= 0; idx--) {
-				if (input.index() < str.length() - 1) {
-					break;
-				\}
-				char s = str.charAt(idx);
-				char lb = (char) input.LA(index - 1);
-				if (s != lb) {
-					break;
-				\}
-				index--;
-			\}
-			if (index * -1 == str.length()) {
-				return false;
-			\}
-		\}
-		return true;
-	\}
-
-	public int skipToEol(ANTLRInputStream input, int index) {
-		while (input.LA(index) != IntStream.EOF && input.LA(index) != '\\n') {
-			index++;
-		\}
-		return index;
-	\}
-
-	public int skipToEoc(ANTLRInputStream input, int index) {
-		while (input.LA(index) != IntStream.EOF) {
-			if (input.LA(index) == '/' && input.LA(index - 1) == '*') {
-				return index;
-			\}
-			index++;
-		\}
-		return index;
-	\}
 \}
-
 
 >>

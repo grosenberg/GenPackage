@@ -31,8 +31,9 @@ AbstractBaseClass(packageName, grammarName, startRule) ::= <<
 %hdrEnd()%
 package %packageName%.test.base;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -40,10 +41,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
-
-import %packageName%.parser.%grammarName%Token;
-import %packageName%.parser.gen.%grammarName%Parser;
-import %packageName%.parser.gen.%grammarName%ParserBaseListener;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
@@ -58,7 +55,10 @@ import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
-import org.junit.Assert;
+
+import %packageName%.parser.gen.%grammarName%Parser;
+import %packageName%.parser.gen.%grammarName%ParserBaseListener;
+import %packageName%.util.Strings;
 
 public abstract class AbstractBase {
 
@@ -82,24 +82,37 @@ public abstract class AbstractBase {
 		if (!lastTestFailed) eraseTempDir();
 	\}
 
-	public String lexSource(String source, boolean output, boolean style) {
-		CommonTokenStream tokens = produceTokens(source);
+	public String lexSource(String source, boolean sysout, boolean hidden) {
+		return lexSource("", source, sysout, hidden);
+	\}
+
+	public String lexSource(String name, String source, boolean sysout, boolean hidden) {
+		CommonTokenStream tokens = produceTokens(name, source);
 		tokens.fill();
 		StringBuilder sb = new StringBuilder();
 		for (Token token : tokens.getTokens()) {
-			((%grammarName%Token) token).toStringStyle(style);
-			sb.append(token.toString());
-			if (output) System.out.print(token.toString());
+			if (token.getChannel() == 0 || hidden) {
+				String txt = getTokenString(token);
+				sb.append(txt + EOL);
+				if (sysout) System.out.print("+ \\"" + txt.trim() + "\\" + EOL" + Strings.eol);
+			\}
 		\}
 		return sb.toString();
 	\}
 
-	public CommonTokenStream produceTokens(String source) {
-		ANTLRInputStream is = new ANTLRInputStream(source);
+	public CommonTokenStream produceTokens(String name, String data) {
+		ANTLRInputStream is = new ANTLRInputStream(data);
+		is.name = name;
 		return createLexerStream(is);
 	\}
 
+	public abstract String getBaseDir();
+
+	public abstract String getTestExt();
+
 	public abstract CommonTokenStream createLexerStream(ANTLRInputStream is);
+
+	public abstract String getTokenString(Token token);
 
 	public List<String> getTokenTypes(LexerGrammar lg, ATN atn, CharStream input) {
 		LexerATNSimulator interp = new LexerATNSimulator(atn, new DFA[] { new DFA(
@@ -116,8 +129,7 @@ public abstract class AbstractBase {
 			ttype = interp.match(input, Lexer.DEFAULT_MODE);
 			if (ttype == Token.EOF) {
 				tokenTypes.add("EOF");
-			\}
-			else {
+			\} else {
 				tokenTypes.add(lg.typeToTokenList.get(ttype));
 			\}
 
@@ -141,8 +153,7 @@ public abstract class AbstractBase {
 			if (t != null) {
 				if (t.startsWith(Grammar.AUTO_GENERATED_TOKEN_NAME_PREFIX)) {
 					tokens.add(g.getTokenDisplayName(i));
-				\}
-				else {
+				\} else {
 					tokens.add(t);
 				\}
 			\}
@@ -152,14 +163,14 @@ public abstract class AbstractBase {
 		StringTokenizer st = new StringTokenizer(allValidTokensStr, ", ");
 		while (st.hasMoreTokens()) {
 			String tokenName = st.nextToken();
-			assertTrue("token " + tokenName + " expected, but was undefined",
-					g.getTokenType(tokenName) != Token.INVALID_TYPE);
+			assertTrue(g.getTokenType(tokenName) != Token.INVALID_TYPE,
+					"token " + tokenName + " expected, but was undefined");
 			tokens.remove(tokenName);
 		\}
 		// make sure there are not any others (other than <EOF> etc...)
 		for (String tokenName : tokens) {
-			assertTrue("unexpected token name " + tokenName,
-					g.getTokenType(tokenName) < Token.MIN_USER_TOKEN_TYPE);
+			assertTrue(g.getTokenType(tokenName) < Token.MIN_USER_TOKEN_TYPE,
+					"unexpected token name " + tokenName);
 		\}
 
 		// make sure all expected rules are there
@@ -167,19 +178,10 @@ public abstract class AbstractBase {
 		int n = 0;
 		while (st.hasMoreTokens()) {
 			String ruleName = st.nextToken();
-			assertNotNull("rule " + ruleName + " expected", g.getRule(ruleName));
+			assertNotNull(g.getRule(ruleName, "rule " + ruleName + " expected"));
 			n++;
 		\}
-		Assert.assertEquals("number of rules mismatch; expecting " + n + "; found " + g.rules.size(), n, g.rules.size());
-	\}
-
-	public void assertEquals(Object expected, Object actual) {
-		try {
-			Assert.assertEquals(expected, actual);
-		\} catch (Error e) {
-			lastTestFailed = true;
-			throw e;
-		\}
+		assertEquals(n, g.rules.size(), "number of rules mismatch; expecting " + n + "; found " + g.rules.size());
 	\}
 
 	protected void mkdir(String dir) {
@@ -251,18 +253,55 @@ TestBaseClass(packageName, grammarName) ::= <<
 %hdrEnd()%
 package %packageName%.test.base;
 
-import %packageName%.parser.%grammarName%TokenFactory;
-import %packageName%.parser.gen.%grammarName%Lexer;
+import java.io.File;
+import java.io.IOException;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
+
+import %packageName%.IOProcessor;
+import %packageName%.converter.Converter;
+import %packageName%.converter.%grammarName%Phase01;
+import %packageName%.converter.%grammarName%Phase02;
+import %packageName%.converter.%grammarName%Phase03;
+import %packageName%.converter.PhaseState;
+import %packageName%.parser.%grammarName%ErrorListener;
+import %packageName%.parser.%grammarName%Token;
+import %packageName%.parser.%grammarName%TokenFactory;
+import %packageName%.parser.gen.%grammarName%Lexer;
+import %packageName%.parser.gen.%grammarName%Parser;
+import %packageName%.parser.gen.%grammarName%Parser.%grammarName%Context;
+import %packageName%.util.FileUtils;
+import %packageName%.util.Log;
 
 public class TestBase extends AbstractBase {
 
-	// public String srcDir = "";
-	// public String dstDir = srcDir;
-	// public String nameIn = "";
-	// public String namOut = "";
+	public static final String DataDir = "test.data";
+	public static final String ResultDir = "test.results";
+	public static final String LexExt = "Lex.txt";
+	public static final String ParseExt = "Parse.txt";
+
+	public TestBase() {
+		super();
+		Log.setTestMode(true);
+	\}
+
+	@Override
+	public String getBaseDir() {
+		return null;
+	\}
+
+	@Override
+	public String getTestExt() {
+		return null;
+	\}
+
+	@Override
+	public String getTokenString(Token token) {
+		return ((%grammarName%Token) token).toString();
+	\}
 
 	@Override
 	public CommonTokenStream createLexerStream(ANTLRInputStream is) {
@@ -270,6 +309,92 @@ public class TestBase extends AbstractBase {
 		%grammarName%TokenFactory factory = new %grammarName%TokenFactory(is);
 		lexer.setTokenFactory(factory);
 		return new CommonTokenStream(lexer);
+	\}
+
+	public String produceTree(CommonTokenStream tokens, boolean sysout) {
+		PhaseState state = new PhaseState();
+		state.tokens = tokens;
+
+		%grammarName%Parser parser = new %grammarName%Parser(tokens);
+		parser.removeErrorListeners();
+		parser.addErrorListener(new %grammarName%ErrorListener());
+		%grammarName%Context tree = parser.json();
+		ParseTreeWalker walker = new ParseTreeWalker();
+
+		Converter conv = new Converter(new IOProcessor(new String[] { "-s" \}));
+		%grammarName%Phase01 phase01 = conv.processPhase01(tree, walker, state);
+		%grammarName%Phase02 phase02 = conv.processPhase02(tree, walker, phase01);
+		%grammarName%Phase03 phase03 = conv.processPhase03(tree, walker, phase02);
+
+		String result = phase03.getState().doc.toString();
+		if (sysout) System.out.println(result);
+		return result;
+	\}
+
+	public String readSrcString(String name) {
+		return readString(DataDir, name, getTestExt());
+	\}
+
+	public String readUpdateLexString(String name, String found) {
+		String expecting = readString(ResultDir, name, LexExt);
+		if (expecting.length() == 0) {
+			writeString(ResultDir, name, found, LexExt);
+		\}
+		return expecting;
+	\}
+
+	public String readUpdateParseTree(String name, String found) {
+		String expecting = readString(ResultDir, name, ParseExt);
+		if (expecting.length() == 0) {
+			writeString(ResultDir, name, found, ParseExt);
+		\}
+		return expecting;
+	\}
+
+	private String readString(String dir, String name, String ext) {
+		name = convertName(dir, name, ext);
+		File f = new File(name);
+		String data = "";
+		if (f.isFile()) {
+			try {
+				data = FileUtils.read(f);
+			\} catch (IOException e) {
+				System.err.println("Read failed: " + e.getMessage());
+			\}
+		\}
+		return data;
+	\}
+
+	private void writeString(String dir, String name, String data, String ext) {
+		name = convertName(dir, name, ext);
+		File f = new File(name);
+		File p = f.getParentFile();
+		if (!p.exists()) {
+			if (!p.mkdirs()) {
+				System.err.println("Failed to create directory: " + p.getAbsolutePath());
+				return;
+			\}
+		\} else if (p.isFile()) {
+			System.err.println("Cannot make directory: " + p.getAbsolutePath());
+			return;
+		\}
+
+		if (f.exists() && f.isFile()) {
+			f.delete();
+		\}
+		try {
+			FileUtils.write(f, data, false);
+		\} catch (IOException e) {
+			System.err.println("Write failed: " + e.getMessage());
+		\}
+	\}
+
+	private String convertName(String dir, String name, String ext) {
+		int idx = name.lastIndexOf('.');
+		if (idx > 0) {
+			name = name.substring(0, idx);
+		\}
+		return FileUtils.concat(getBaseDir(), dir, name + ext);
 	\}
 \}
 
@@ -305,27 +430,30 @@ TestWordClass(packageName, grammarName) ::= <<
 %hdrEnd()%
 package %packageName%.test;
 
+import static org.testng.Assert.assertEquals;
+
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import %packageName%.IOProcessor;
 import %packageName%.converter.Converter;
-import %packageName%.parser.%grammarName%Token;
 import %packageName%.test.base.TestBase;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import %packageName%.util.Log;
 
 public class TestWord extends TestBase {
 
 	private Converter converter;
 
-	@Before
+	@BeforeMethod
 	public void setUp() throws Exception {
+		Log.setTestMode(true);
 		String[] args = { "-s" \};
 		IOProcessor processor = new IOProcessor(args);
 		converter = new Converter(processor);
 	\}
 
-	@After
+	@AfterMethod
 	public void tearDown() throws Exception {
 		converter = null;
 	\}
@@ -333,7 +461,7 @@ public class TestWord extends TestBase {
 	@Test
 	public void testLexBold() throws Exception {
 		String source = "This is a *simple* sentence." + EOL;
-		String found = lexSource(source, true, %grammarName%Token.BASIC);
+		String found = lexSource(source, true, true);
 		String expecting = "[@0   1:0  Word='This' ]" + EOL
 				+ "[@1   1:4  Ws=' ' Hidden]" + EOL
 				+ "[@2   1:5  Word='is' ]" + EOL
@@ -347,13 +475,13 @@ public class TestWord extends TestBase {
 				+ "[@10  1:19 Word='sentence.' ]" + EOL
 				+ "[@11  1:28 Blankline='rn' ]" + EOL//
 				+ "[@12  2:30 Eof='<EOF>' ]" + EOL;
-		assertEquals(expecting, found);
+		assertEquals(found, expecting);
 	\}
 
 	@Test
 	public void testConvertBold() {
 		String source = "This is a *simple* sentence." + EOL;
-		String result = converter.convert(source);
+		String result = converter.convert("", source);
 		String expecting = "<p>This is a <b>simple</b> sentence.</p>" + EOL;
 		assertEquals(expecting, result);
 	\}
@@ -361,7 +489,7 @@ public class TestWord extends TestBase {
 	@Test
 	public void testLexUnderscore() throws Exception {
 		String source = "Test: _underline_ text." + EOL;
-		String found = lexSource(source, true, %grammarName%Token.BASIC);
+		String found = lexSource(source, true, true);
 		String expecting = "[@0   1:0  Word='Test:' ]" + EOL
 				+ "[@1   1:5  Ws=' ' Hidden]" + EOL
 				+ "[@2   1:6  Underscore='_' ]" + EOL
@@ -371,13 +499,13 @@ public class TestWord extends TestBase {
 				+ "[@6   1:18 Word='text.' ]" + EOL
 				+ "[@7   1:23 Blankline='rn' ]" + EOL
 				+ "[@8   2:25 Eof='<EOF>' ]" + EOL;
-		assertEquals(expecting, found);
+		assertEquals(found, expecting);
 	\}
 
 	@Test
 	public void testWordPunct() throws Exception {
 		String source = "And, just_a simple-test. Here & now: a *'special'* don't." + EOL;
-		String found = lexSource(source, true, %grammarName%Token.BASIC);
+		String found = lexSource(source, true, true);
 		String expecting = "[@0   1:0  Word='And,' ]" + EOL
 				+ "[@1   1:4  Ws=' ' Hidden]" + EOL
 				+ "[@2   1:5  Word='just_a' ]" + EOL
@@ -401,7 +529,301 @@ public class TestWord extends TestBase {
 				+ "[@20  1:51 Word='don't.' ]" + EOL
 				+ "[@21  1:57 Blankline='rn' ]" + EOL
 				+ "[@22  2:59 Eof='<EOF>' ]" + EOL;
-		assertEquals(expecting, found);
+		assertEquals(found, expecting);
+	\}
+\}
+
+
+>>
+
+TestBulkClassCopyright() ::= <<
+ * Copyright (c) 2008-2014 G Rosenberg.
+ * 
+>>
+
+TestBulkClassContributor() ::= <<
+ *		G Rosenberg - initial API and implementation
+ * 
+>>
+
+TestBulkClassVersion() ::= <<
+ * 		1.0 - 2014.03.26: First release level code
+ * 		1.1 - 2014.08.26: Updates, add Tests support
+ * 
+>>
+
+TestBulkClass(packageName, grammarName) ::= <<
+%hdrBeg()%
+%TestBulkClassCopyright()%
+%epl()%
+%hdrBlankLn()%
+%hdrContribPrefix()%
+%TestBulkClassContributor()%
+%hdrBlankLn()%
+%hdrVersionPrefix()%
+%TestBulkClassVersion()%
+%hdrBlankLn()%
+%hdrEnd()%
+
+>>
+
+TestIOProcessorClassCopyright() ::= <<
+ * Copyright (c) 2008-2014 G Rosenberg.
+ * 
+>>
+
+TestIOProcessorClassContributor() ::= <<
+ *		G Rosenberg - initial API and implementation
+ * 
+>>
+
+TestIOProcessorClassVersion() ::= <<
+ * 		1.0 - 2014.03.26: First release level code
+ * 		1.1 - 2014.08.26: Updates, add Tests support
+ * 
+>>
+
+TestIOProcessorClass(packageName, grammarName) ::= <<
+%hdrBeg()%
+%TestIOProcessorClassCopyright()%
+%epl()%
+%hdrBlankLn()%
+%hdrContribPrefix()%
+%TestIOProcessorClassContributor()%
+%hdrBlankLn()%
+%hdrVersionPrefix()%
+%TestIOProcessorClassVersion()%
+%hdrBlankLn()%
+%hdrEnd()%
+package %packageName%.bulk;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+
+import org.antlr.v4.runtime.ANTLRFileStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+
+import %packageName%.parser.%grammarName%ErrorListener;
+import %packageName%.parser.%grammarName%TokenFactory;
+import %packageName%.parser.gen.%grammarName%Lexer;
+import %packageName%.parser.gen.%grammarName%Parser;
+import %packageName%.parser.gen.%grammarName%Parser.%grammarName%Context;
+import %packageName%.util.Log;
+import %packageName%.util.Log.LogLevel;
+
+public class TestIOProcessor {
+
+	private String[] opts; // pathnames
+	private String source; // processed pathnames
+	private String target;
+
+	private ArrayList<String> types = new ArrayList<>();
+
+	private boolean FileIn; // flags
+	private boolean FileOut;
+	private boolean StdIO;
+	private boolean TextIn;
+
+	private String srcData; // loaded source data
+	private int beg = 0;
+	private int end = 100;
+
+	public TestIOProcessor(String[] args) {
+		Log.setLevel(this, LogLevel.Debug);
+		if (args.length == 0) {
+			printHelp();
+		\}
+		opts = new String[3];
+		opts[0] = opts[1] = opts[2] = "";
+		for (int idx = 0; idx < args.length; idx++) {
+
+			switch (args[idx].trim().toLowerCase()) {
+				case "-b":
+					idx++;
+					beg = Integer.parseInt(args[idx]);
+					break;
+				case "-e":
+					idx++;
+					end = Integer.parseInt(args[idx]);
+					break;
+				case "-t":
+					idx++;
+					types.add(args[idx]);
+					break;
+				case "-i":
+					idx++;
+					source = args[idx];
+					break;
+				case "-h":
+				default:
+					printHelp();
+					break;
+			\}
+		\}
+	\}
+
+	public File init() {
+		if (source == null) {
+			Log.error(this, "Need to specify an input source.");
+			return null;
+		\}
+
+		File root = new File(source);
+		if (!root.exists()) {
+			Log.error(this, "Source file does not exist (" + source + ")");
+			return null;
+		\}
+
+		return root;
+	\}
+
+	public String getSourceName() {
+		return source;
+	\}
+
+	public String loadData() {
+		if (FileIn) {
+			String msg = "Error reading source data from file '" + source + "'";
+			try {
+				srcData = FileUtils.readFileToString(new File(source));
+			\} catch (IOException e) {
+				Log.error(this, msg);
+			\}
+		\} else if (StdIO && !TextIn) {
+			String msg = "Error reading source data from standard in";
+			InputStream in = System.in;
+			try {
+				srcData = IOUtils.toString(System.in);
+			\} catch (IOException e) {
+				Log.error(this, msg);
+			\} finally {
+				IOUtils.closeQuietly(in);
+			\}
+		\} else if (TextIn) {
+			StdIO = true;
+		\}
+		return srcData;
+	\}
+
+	public void storeData(String data) {
+		if (FileOut) {
+			try {
+				FileUtils.writeStringToFile(new File(target), data);
+			\} catch (IOException e) {
+				Log.error(this, "Error writing result data to file '" + target + "'", e);
+			\}
+		\} else if (StdIO) {
+			OutputStream out = System.out;
+			try {
+				IOUtils.write(data, out);
+			\} catch (IOException e) {
+				Log.error(this, "Error writing result data to standard out", e);
+			\} finally {
+				IOUtils.closeQuietly(out);
+			\}
+		\}
+	\}
+
+	public void processFiles(File root, int begin, int end) {
+		int count = 0;
+		int passed = 0;
+		if (root.isFile() && end > 0) {
+			evaluateFile(root);
+		\} else if (root.isDirectory()) {
+			String[] checkedTypes = getCheckedTypes();
+			for (File file : FileUtils.listFiles(root, checkedTypes, true)) {
+				count++;
+				if (count >= begin) {
+					Log.debug(this, "Processing (" + count + ") " + file.getPath());
+					passed += evaluateFile(file);
+				\} else {
+					Log.debug(this, "Skipping (" + count + ") " + file.getPath());
+				\}
+				if (count >= end) break;
+			\}
+		\}
+		Log.info(this, "Processed " + count + "/" + passed + " files/passed.");
+
+	\}
+
+	private int evaluateFile(File file) {
+
+		String lastError = "Failure in acquiring input stream.";
+		%grammarName%Context result = null;
+		try {
+			ANTLRFileStream input = new ANTLRFileStream(file.getPath());
+			input.name = file.getName();
+
+			lastError = "Failure in generating lexer token stream.";
+			%grammarName%Lexer lexer = new %grammarName%Lexer(input);
+			%grammarName%TokenFactory factory = new %grammarName%TokenFactory(input);
+			lexer.setTokenFactory(factory);
+			CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+			lastError = "Failure in parser production.";
+			%grammarName%Parser parser = new %grammarName%Parser(tokens);
+			parser.setTokenFactory(factory);
+			parser.removeErrorListeners(); // remove ConsoleErrorListener
+			parser.addErrorListener(new %grammarName%ErrorListener());
+			// parser.addErrorListener(new DiagnosticErrorListener());
+			// parser.setErrorHandler(new %grammarName%ParserErrorStrategy());
+			result = parser.json();
+		\} catch (RecognitionException | IOException e) {
+			Log.error(this, file.getName() + ": " + lastError);
+			return 0;
+		\}
+		if (result != null && result.getChildCount() > 0) {
+			return 1;
+		\}
+		return 0;
+	\}
+
+	private String[] getCheckedTypes() {
+		int num = types.size();
+		return types.toArray(new String[num]);
+	\}
+
+	public int getBeg() {
+		return beg;
+	\}
+
+	public int getEnd() {
+		return end;
+	\}
+
+	@SuppressWarnings("unused")
+	private String cwd() {
+		String cwd = "";
+		try {
+			cwd = new File(".").getCanonicalPath();
+		\} catch (IOException e) {\}
+		return cwd;
+	\}
+
+	@SuppressWarnings("unused")
+	private String readFile(String filename) {
+		File file = new File(filename);
+		String data = null;
+		try {
+			data = FileUtils.readFileToString(file);
+		\} catch (IOException e) {
+			Log.error(this, "Error reading file", e);
+		\}
+		return data;
+
+	\}
+
+	private void printHelp() {
+		System.out.println("Usage:");
+		System.out.println("java -jar [cli_options]" + System.lineSeparator());
+		// etc.
+		System.exit(0);
 	\}
 \}
 

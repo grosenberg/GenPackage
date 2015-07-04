@@ -13,7 +13,7 @@ set grammarName=Test
 rem well-known locations
 set ruleSet=%workspace%\GenProject\GenProjectRuleSet.json
 set projConfigFile=%workspace%\%projectName%\%grammarName%GenConfig.json
-set genprjar=D:\DevFiles\Java\WorkSpaces\Main\GenProject\jars\GenProject-2.1-complete.jar
+set genprjar=D:\DevFiles\Java\WorkSpaces\Main\GenProject\jars\GenProject-2.2-complete.jar
 set antlrjar=D:\DevFiles\Java\WorkSpaces\Main\GenProject\lib\antlr-4.5-complete.jar
 set javahome=C:\Program Files\Java\jre1.8
 set javapgm="%javahome%\bin\java"
