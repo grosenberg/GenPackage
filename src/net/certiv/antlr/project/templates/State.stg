@@ -2,19 +2,19 @@ delimiters "$", "$"
 import "D:\DevFiles\Java\WorkSpaces\Main\GenProject\src\net\certiv\antlr\project\libs\Header.stg"
 
 PhaseStateClassCopyright() ::= <<
- * Copyright (c) 2008-2015 G Rosenberg.
- *
+ * Copyright (c) 2008-2014 G Rosenberg.
+ * 
 >>
 
 PhaseStateClassContributor() ::= <<
  *		G Rosenberg - initial API and implementation
- *
+ * 
 >>
 
 PhaseStateClassVersion() ::= <<
  * 		1.0 - 2014.03.26: First release level code
  * 		1.1 - 2014.08.26: Updates, add Tests support
- *
+ * 
 >>
 
 PhaseStateClass(packageName) ::= <<
@@ -90,18 +90,18 @@ public class PhaseState {
 
 ValueClassCopyright() ::= <<
  * Copyright (c) 2008-2014 G Rosenberg.
- *
+ * 
 >>
 
 ValueClassContributor() ::= <<
  *		G Rosenberg - initial API and implementation
- *
+ * 
 >>
 
 ValueClassVersion() ::= <<
  * 		1.0 - 2014.03.26: First release level code
  * 		1.1 - 2014.08.26: Updates, add Tests support
- *
+ * 
 >>
 
 ValueClass(packageName) ::= <<
@@ -341,18 +341,18 @@ public class Value {
 
 ContentClassCopyright() ::= <<
  * Copyright (c) 2008-2014 G Rosenberg.
- *
+ * 
 >>
 
 ContentClassContributor() ::= <<
  *		G Rosenberg - initial API and implementation
- *
+ * 
 >>
 
 ContentClassVersion() ::= <<
  * 		1.0 - 2014.03.26: First release level code
  * 		1.1 - 2014.08.26: Updates, add Tests support
- *
+ * 
 >>
 
 ContentClass(packageName) ::= <<
@@ -379,18 +379,18 @@ public enum Content {
 
 OpClassCopyright() ::= <<
  * Copyright (c) 2008-2014 G Rosenberg.
- *
+ * 
 >>
 
 OpClassContributor() ::= <<
  *		G Rosenberg - initial API and implementation
- *
+ * 
 >>
 
 OpClassVersion() ::= <<
  * 		1.0 - 2014.03.26: First release level code
  * 		1.1 - 2014.08.26: Updates, add Tests support
- *
+ * 
 >>
 
 OpClass(packageName) ::= <<
@@ -467,18 +467,18 @@ public enum Op {
 
 StmtTypeClassCopyright() ::= <<
  * Copyright (c) 2008-2014 G Rosenberg.
- *
+ * 
 >>
 
 StmtTypeClassContributor() ::= <<
  *		G Rosenberg - initial API and implementation
- *
+ * 
 >>
 
 StmtTypeClassVersion() ::= <<
  * 		1.0 - 2014.03.26: First release level code
  * 		1.1 - 2014.08.26: Updates, add Tests support
- *
+ * 
 >>
 
 StmtTypeClass(packageName) ::= <<
@@ -507,18 +507,18 @@ public enum StmtType {
 
 StyleTypeClassCopyright() ::= <<
  * Copyright (c) 2008-2014 G Rosenberg.
- *
+ * 
 >>
 
 StyleTypeClassContributor() ::= <<
  *		G Rosenberg - initial API and implementation
- *
+ * 
 >>
 
 StyleTypeClassVersion() ::= <<
  * 		1.0 - 2014.03.26: First release level code
  * 		1.1 - 2014.08.26: Updates, add Tests support
- *
+ * 
 >>
 
 StyleTypeClass(packageName) ::= <<
@@ -551,18 +551,18 @@ public enum StyleType {
 
 ValueTypeClassCopyright() ::= <<
  * Copyright (c) 2008-2014 G Rosenberg.
- *
+ * 
 >>
 
 ValueTypeClassContributor() ::= <<
  *		G Rosenberg - initial API and implementation
- *
+ * 
 >>
 
 ValueTypeClassVersion() ::= <<
  * 		1.0 - 2014.03.26: First release level code
  * 		1.1 - 2014.08.26: Updates, add Tests support
- *
+ * 
 >>
 
 ValueTypeClass(packageName) ::= <<
@@ -637,18 +637,18 @@ public enum ValueType {
 
 ToStringStyleClassCopyright() ::= <<
  * Copyright (c) 2008-2014 G Rosenberg.
- *
+ * 
 >>
 
 ToStringStyleClassContributor() ::= <<
  *		G Rosenberg - initial API and implementation
- *
+ * 
 >>
 
 ToStringStyleClassVersion() ::= <<
  * 		1.0 - 2014.03.26: First release level code
  * 		1.1 - 2014.08.26: Updates, add Tests support
- *
+ * 
 >>
 
 ToStringStyleClass(packageName) ::= <<
@@ -676,18 +676,18 @@ public enum ToStringStyle {
 
 JsonClassCopyright() ::= <<
  * Copyright (c) 2008-2015 G Rosenberg.
- *
+ * 
 >>
 
 JsonClassContributor() ::= <<
  *		G Rosenberg - initial API and implementation
- *
+ * 
 >>
 
 JsonClassVersion() ::= <<
  * 		1.0 - 2014.03.26: First release level code
  * 		1.1 - 2014.08.26: Updates, add Tests support
- *
+ * 
 >>
 
 JsonClass(packageName) ::= <<

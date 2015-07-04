@@ -564,6 +564,50 @@ TestBulkClass(packageName, grammarName) ::= <<
 %TestBulkClassVersion()%
 %hdrBlankLn()%
 %hdrEnd()%
+package %packageName%.bulk;
+
+import java.io.File;
+
+import %packageName%.util.Log;
+import %packageName%.util.Log.LogLevel;
+
+public class TestBulk {
+
+	public TestBulk() {\}
+
+	private TestIOProcessor processor;
+
+	public static void main(String[] args) {
+		new TestBulk(args);
+	\}
+
+	public TestBulk(String[] args) {
+
+		Log.defLevel(LogLevel.Debug);
+		Log.setTestMode(false);
+
+		if (args == null || args.length == 0) {
+			String input = "D:/DevFiles/Java/Workspaces/Main/net.certiv.antlr.go/src/org/antlr/v4/runtime";
+			args = new String[] { "-i", input, "-t", "java", "-e", "200" \};
+		\}
+
+		Log.info(this, "TestBulk running...");
+		processor = new TestIOProcessor(args);
+		File root = processor.init();
+		if (root != null) {
+			Log.info(this, "Startup complete.");
+
+			int beg = processor.getBeg();
+			int end = processor.getEnd();
+			processor.processFiles(root, beg, end);
+
+			Log.info(this, "Done.");
+		\} else {
+			Log.error(this, "TestBulk Failed.");
+		\}
+	\}
+\}
+
 
 >>
 
