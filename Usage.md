@@ -78,7 +78,7 @@ existing files. Use with caution.
 
 #### Command line
 
-|Data arguments|||
+|Data arguments||Example|
 |------|------|------|
 |-g grammarName |Grammar name prefix| Json|
 |-n packageName |Package pathname| net.certiv.json|
