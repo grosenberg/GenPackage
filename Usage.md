@@ -48,11 +48,13 @@
 	2. Run the Antlr tool runner and project generator whenever desired to reflect grammar changes.
 
 ### Instructions (Linux)
+
 1. Linux users do not require instructions!
 2. Linux users can convert Windows batch-files to their chosen shell in their sleep.
 3. If you wish to contribute a set of shell scripts, please submit a pull request.
 
 ### Notes
+
 1. The Antlr tool runner can be executed at any time to rebuild the lexer,
 parser, and listener java files.
 2. The wizard requires the parser and listener java files in order to (re)generate
@@ -64,7 +66,8 @@ the descriptor java files.
 existing files. Use with caution.
 7. Orphaned descriptor files have to be removed manually.
 
-### Dependencies 
+### Dependencies
+ 
 Antlr4 [ANTLR 4.5+ Complete](http://www.antlr.org/download.html)
 Apache [Log4j2 Core and API](http://logging.apache.org/log4j/2.x/) 
 Apache [Commons CLI](http://commons.apache.org/proper/commons-cli/)
@@ -74,6 +77,7 @@ Google [Gson](https://code.google.com/p/google-gson/)
 Evo [Inflector](http://mvnrepository.com/artifact/org.atteo/evo-inflector/1.2.1)
 
 #### Command line
+
 |Data arguments:|
 |==|==|==|
 |-g grammarName |Grammar name prefix| Json|
