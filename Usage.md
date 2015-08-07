@@ -78,7 +78,7 @@ existing files. Use with caution.
 
 #### Command line
 
-|Data arguments|
+|Data arguments|||
 |------|------|------|
 |-g grammarName |Grammar name prefix| Json|
 |-n packageName |Package pathname| net.certiv.json|
@@ -87,7 +87,7 @@ existing files. Use with caution.
 |-p projectPath |system path to project directory| D:/DevFiles/Java/WorkSpaces/Main/MyJsonProject|
 |-s sourcePath |internal path to the project source directory|src|
 
-|Procedurals|
+|Procedurals||
 |------|------|
 |-c |create all project files|
 |-d |create descriptor files|
