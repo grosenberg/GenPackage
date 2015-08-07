@@ -79,7 +79,7 @@ existing files. Use with caution.
 #### Command line
 
 |Data arguments|
-|--|--|--|
+|------|------|------|
 |-g grammarName |Grammar name prefix| Json|
 |-n packageName |Package pathname| net.certiv.json|
 |-a antlrJar |system path to the Antlr jar| D:/DevFiles/Java/Libs/Antlr/antlr-4.5-complete.jar|
@@ -88,7 +88,7 @@ existing files. Use with caution.
 |-s sourcePath |internal path to the project source directory|src|
 
 |Procedurals|
-|--|--|
+|------|------|
 |-c |create all project files|
 |-d |create descriptor files|
 |-f |Force overwrite operation (use with caution)|
