@@ -1,6 +1,6 @@
 delimiters "%", "%"
-import "D:\DevFiles\Java\WorkSpaces\Main\GenProject\src\net\certiv\antlr\project\libs\Header.stg"
-import "D:\DevFiles\Java\WorkSpaces\Main\GenProject\src\net\certiv\antlr\project\libs\Elements.stg"
+import "..\libs\Header.stg"
+import "..\libs\Elements.stg"
 
 BaseDescriptorClassCopyright() ::= <<
  * Copyright (c) 2008-2014 G Rosenberg.

@@ -1,5 +1,5 @@
 delimiters "$", "$"
-import "D:\DevFiles\Java\WorkSpaces\Main\GenProject\src\net\certiv\antlr\project\libs\Header.stg"
+import "..\libs\Header.stg"
 
 ErrorListenerClassCopyright() ::= <<
  * Copyright (c) 2008-2014 G Rosenberg.

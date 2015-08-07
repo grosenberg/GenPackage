@@ -2,23 +2,27 @@
 <project default="create_run_jar" name="Create Runnable Jar for Project GenProject">
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
+    <!--define folder properties-->
+    <property name="dir.buildfile" value="."/>
+    <property name="dir.workspace" value="${dir.buildfile}/.."/>
+    <property name="dir.jarfile" value="${dir.buildfile}/jars"/>
     <target name="create_run_jar">
-        <jar destfile="D:/DevFiles/Java/WorkSpaces/Main/GenProject/jars/GenProject-2.2-complete.jar" filesetmanifest="mergewithoutmain">
+        <jar destfile="${dir.jarfile}/GenProject-2.2-complete.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="net.certiv.antlr.project.gen.GenProject"/>
                 <attribute name="Class-Path" value="."/>
             </manifest>
-            <fileset dir="D:/DevFiles/Java/WorkSpaces/Main/GenProject/bin"/>
-            <zipfileset excludes="META-INF/*.SF" src="D:/DevFiles/Java/WorkSpaces/Main/GenProject/lib/antlr-4.5-complete.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="D:/DevFiles/Java/WorkSpaces/Main/GenProject/lib/commons-io-2.4.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="D:/DevFiles/Java/WorkSpaces/Main/GenProject/lib/commons-cli-1.2.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="D:/DevFiles/Java/WorkSpaces/Main/GenProject/lib/log4j-api-2.0.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="D:/DevFiles/Java/WorkSpaces/Main/GenProject/lib/log4j-core-2.0.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="D:/DevFiles/Java/WorkSpaces/Main/GenProject/lib/commons-lang3-3.3.2.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="D:/DevFiles/Java/WorkSpaces/Main/GenProject/lib/gson-2.3.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="D:/DevFiles/Java/WorkSpaces/Main/GenProject/lib/evo-inflector-1.2.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DevBin/Eclipse44_64/eclipse/plugins/org.junit_4.11.0.v201303080030/junit.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DevBin/Eclipse44_64/eclipse/plugins/org.hamcrest.core_1.3.0.v201303031735.jar"/>
+            <fileset dir="${dir.buildfile}/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/lib/commons-io-2.4.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/lib/commons-cli-1.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/lib/log4j-api-2.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/lib/log4j-core-2.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/lib/commons-lang3-3.3.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/lib/gson-2.3.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/lib/evo-inflector-1.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/DevBin/Eclipse45_64/eclipse/plugins/org.junit_4.12.0.v201504281640/junit.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/DevBin/Eclipse45_64/eclipse/plugins/org.hamcrest.core_1.3.0.v201303031735.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/lib/antlr-4.5-complete.jar"/>
         </jar>
     </target>
 </project>

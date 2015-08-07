@@ -4,18 +4,18 @@ rem Initialize a new project
 SETLOCAL
 set STARTTIME=%TIME%
 
-rem edit these 4 values to define a new project
+rem edit these 5 values to define a new project
+set javahome=C:\Program Files\Java\jre1.8
 set workspace=D:\DevFiles\Java\WorkSpaces\Main
-set projectName=net.certiv.test
-set packageName=net.certiv.test
-set grammarName=Test
+set projectName=net.certiv.testx
+set packageName=net.certiv.testx
+set grammarName=TestX
 
 rem well-known locations
 set ruleSet=%workspace%\GenProject\GenProjectRuleSet.json
 set projConfigFile=%workspace%\%projectName%\%grammarName%GenConfig.json
-set genprjar=D:\DevFiles\Java\WorkSpaces\Main\GenProject\jars\GenProject-2.2-complete.jar
-set antlrjar=D:\DevFiles\Java\WorkSpaces\Main\GenProject\lib\antlr-4.5-complete.jar
-set javahome=C:\Program Files\Java\jre1.8
+set genprjar=%workspace%\GenProject\jars\GenProject-2.2-complete.jar
+set antlrjar=%workspace%\GenProject\lib\antlr-4.5.1-complete.jar
 set javapgm="%javahome%\bin\java"
 
 set CLASSPATH=%genprjar%;%antlrjar%;%CLASSPATH%
@@ -38,4 +38,5 @@ set /A REMAINDER=%DURATION% %% 100
 echo %SECS%.%REMAINDER% s
 ENDLOCAL
 
-timeout 4
+rem timeout 4
+pause
