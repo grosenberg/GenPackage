@@ -68,18 +68,18 @@ existing files. Use with caution.
 
 ### Dependencies
  
-Antlr4 [ANTLR 4.5+ Complete](http://www.antlr.org/download.html)
-Apache [Log4j2 Core and API](http://logging.apache.org/log4j/2.x/) 
-Apache [Commons CLI](http://commons.apache.org/proper/commons-cli/)
-Apache [Commons IO](http://commons.apache.org/proper/commons-io/)
-Apache [Commons Lang](http://commons.apache.org/proper/commons-lang/)
-Google [Gson](https://code.google.com/p/google-gson/)
-Evo [Inflector](http://mvnrepository.com/artifact/org.atteo/evo-inflector/1.2.1)
+* Antlr4 [ANTLR 4.5+ Complete](http://www.antlr.org/download.html)
+* Apache [Log4j2 Core and API](http://logging.apache.org/log4j/2.x/) 
+* Apache [Commons CLI](http://commons.apache.org/proper/commons-cli/)
+* Apache [Commons IO](http://commons.apache.org/proper/commons-io/)
+* Apache [Commons Lang](http://commons.apache.org/proper/commons-lang/)
+* Google [Gson](https://code.google.com/p/google-gson/)
+* Evo [Inflector](http://mvnrepository.com/artifact/org.atteo/evo-inflector/1.2.1)
 
 #### Command line
 
-|Data arguments:|
-|==|==|==|
+|Data arguments|
+|--|--|--|
 |-g grammarName |Grammar name prefix| Json|
 |-n packageName |Package pathname| net.certiv.json|
 |-a antlrJar |system path to the Antlr jar| D:/DevFiles/Java/Libs/Antlr/antlr-4.5-complete.jar|
@@ -87,8 +87,8 @@ Evo [Inflector](http://mvnrepository.com/artifact/org.atteo/evo-inflector/1.2.1)
 |-p projectPath |system path to project directory| D:/DevFiles/Java/WorkSpaces/Main/MyJsonProject|
 |-s sourcePath |internal path to the project source directory|src|
 
-|Procedurals:|
-|==|==|
+|Procedurals|
+|--|--|
 |-c |create all project files|
 |-d |create descriptor files|
 |-f |Force overwrite operation (use with caution)|
